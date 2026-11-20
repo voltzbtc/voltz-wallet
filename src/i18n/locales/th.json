@@ -366,6 +366,7 @@
     "dotsValue": "ป้อนแล้ว {{count}} จาก {{total}} หลัก",
     "mismatch": "PIN ไม่ตรงกัน ลองอีกครั้ง",
     "wrong": "PIN ไม่ถูกต้อง",
+    "wait": "ใส่ PIN ผิดหลายครั้งเกินไป ลองอีกครั้งใน {{time}}",
     "biometricPrompt": "ปลดล็อก Voltz",
     "saveFailed": "บันทึก PIN ของคุณในอุปกรณ์นี้ไม่ได้ ลองอีกครั้ง",
     "forgot": "ลืม PIN ใช่ไหม",

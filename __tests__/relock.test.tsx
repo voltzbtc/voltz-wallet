@@ -281,6 +281,20 @@ beforeEach(async () => {
   exitApp = jest.spyOn(BackHandler, 'exitApp').mockImplementation(() => undefined)
 })
 
+// Holds the next read of the PIN itself, and only that read: the keypad reads its count of wrong PINs
+// from the Keychain too, before it compares.
+function holdPinRead(hold: (resolve: (value: never) => void) => void): void {
+  const base = jest.mocked(Keychain.getGenericPassword).getMockImplementation()!
+  let held = false
+  jest.mocked(Keychain.getGenericPassword).mockImplementation(async options => {
+    if (!held && options?.service === 'com.voltz.wallet.pin') {
+      held = true
+      return new Promise(hold)
+    }
+    return base(options)
+  })
+}
+
 afterEach(async () => {
   await ReactTestRenderer.act(async () => {
     trees.forEach(tree => tree.unmount())
@@ -951,9 +965,16 @@ describe('the steps past the unlock with no navigator', () => {
     jest.spyOn(native, 'beginOwnActivity').mockImplementation(() => undefined)
     jest.mocked(Keychain.getSupportedBiometryType).mockResolvedValue(Keychain.BIOMETRY_TYPE.FACE_ID)
     let answer!: () => void
-    jest.mocked(Keychain.setGenericPassword).mockImplementationOnce(
-      () => new Promise(resolve => (answer = () => resolve(false))),
-    )
+    // The offer's write, not the keypad's count of wrong PINs, which is written first.
+    const base = jest.mocked(Keychain.setGenericPassword).getMockImplementation()
+    let held = false
+    jest.mocked(Keychain.setGenericPassword).mockImplementation(async (user, password, options) => {
+      if (!held && options?.service !== 'com.voltz.wallet.pin.failures') {
+        held = true
+        return new Promise(resolve => (answer = () => resolve(false)))
+      }
+      return base ? base(user, password, options) : false
+    })
     const tree = await boot()
     await typePin(tree, '123456')
     await ReactTestRenderer.act(async () => {
@@ -1034,9 +1055,7 @@ describe('the steps past the unlock with no navigator', () => {
   test('a PIN whose check answers after the app left still counts the time away', async () => {
     const tree = await boot()
     let check!: () => void
-    jest.mocked(Keychain.getGenericPassword).mockImplementationOnce(
-      () => new Promise(resolve => (check = () => resolve({ username: 'u', password: '123456' } as never))),
-    )
+    holdPinRead(resolve => (check = () => resolve({ username: 'u', password: '123456' } as never)))
     await typePin(tree, '123456')
     device.leave()
     await appState('background')
@@ -1093,9 +1112,7 @@ describe('an answer given to an older lock', () => {
   // Holds the next PIN check, as a Keychain read still running when the app leaves.
   function holdCheck(): () => void {
     let check!: () => void
-    jest.mocked(Keychain.getGenericPassword).mockImplementationOnce(
-      () => new Promise(resolve => (check = () => resolve({ username: 'u', password: '123456' } as never))),
-    )
+    holdPinRead(resolve => (check = () => resolve({ username: 'u', password: '123456' } as never)))
     return () => check()
   }
 

@@ -372,6 +372,7 @@
     "dotsValue": "{{count}} chiffres saisis sur {{total}}",
     "mismatch": "Les PIN ne correspondent pas. Réessayez.",
     "wrong": "PIN incorrect",
+    "wait": "Trop de PIN incorrects. Réessayez dans {{time}}.",
     "biometricPrompt": "Déverrouiller Voltz",
     "saveFailed": "Impossible d'enregistrer votre PIN sur cet appareil. Réessayez.",
     "forgot": "PIN oublié ?",

@@ -18,7 +18,16 @@ jest.mock('../src/wallet/wallet', () => ({
   settleActiveWallet: jest.fn(),
   onActiveWalletChanged: () => () => undefined,
 }))
-jest.mock('../src/wallet/pin', () => ({ hasPin: jest.fn(), savePin: jest.fn(), verifyPin: jest.fn() }))
+// The keypad's check, over the comparison each case decides, with no wrong-PIN wait.
+jest.mock('../src/wallet/pin', () => {
+  const compare = jest.fn()
+  return {
+    hasPin: jest.fn(), savePin: jest.fn(), verifyPin: compare,
+    enterPin: jest.fn(async (pin: string) => ((await compare(pin)) ? { ok: true } : { ok: false, waitMs: 0 })),
+    pinWaitLeft: jest.fn(async () => 0),
+    clearPinFailures: jest.fn(async () => undefined),
+  }
+})
 jest.mock('../src/wallet/walletRegistry', () => ({ getActiveWalletId: jest.fn(async () => 'w1') }))
 jest.mock('../src/wallet/settings', () => ({
   loadDisplayLanguage: jest.fn().mockResolvedValue(null),

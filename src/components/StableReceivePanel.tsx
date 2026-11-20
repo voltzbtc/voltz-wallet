@@ -33,6 +33,7 @@ import { FigureRow } from './FigureRow'
 import { receiveStyles, RECEIVE_QR_SIZE } from './receiveStyles'
 import { Touch } from './Touch'
 import { chainIconId } from './stableLogos'
+import { formatClock } from '../wallet/clock'
 import { colors, dividerBottom, font, qrFrame, radius, space, touch } from '../theme'
 
 type Props = {
@@ -42,14 +43,6 @@ type Props = {
   onShareable: (text: string | null) => void
   /** Asks again, at the press of Copy, whether an emergency exit holds the wallet. */
   heldAtPress?: () => Promise<boolean>
-}
-
-// In the language's digits, as the word grid numbers its cells.
-function clock(ms: number, language: string): string {
-  const total = Math.ceil(ms / 1000)
-  const minutes = new Intl.NumberFormat(language).format(Math.floor(total / 60))
-  const seconds = new Intl.NumberFormat(language, { minimumIntegerDigits: 2 }).format(total % 60)
-  return `${minutes}:${seconds}`
 }
 
 // USDT or USDC paid in on another chain, converted and delivered to this wallet by the provider. The
@@ -448,7 +441,7 @@ export function StableReceivePanel({ coin, onShareable, heldAtPress }: Props): R
             </FigureRow>
             <FigureRow label={t('receive.priceValidFor')} labelRole="caption" style={styles.line}>
               <Txt role="caption" tabular>
-                {clock(remaining, i18n.language)}
+                {formatClock(remaining, i18n.language)}
               </Txt>
             </FigureRow>
           </Card>
