@@ -235,6 +235,10 @@ Each of these breaks something without breaking the suite.
   primary id only when the registry is empty. A read that throws is not an absent seed: it moves
   nothing, and the boot stops on its error screen. Android never reaches this state,
   since the manifest sets `allowBackup="false"`.
+  The SDK's own folder (`Documents/spark`), with the payments, the contacts and the address in the
+  clear, is flagged out of backups at every connect, so it never crosses; the network gives it back.
+  The registry and `passkey-wallets.json` still cross, since they hold ids and fingerprints, not
+  payments, and the words of a listed wallet take its id back only because the list crossed.
 - **A file whose loss costs wallets or money is never written in place.** Android's `writeFile`
   truncates before it writes, so a process killed mid write leaves the file torn, and a reader that
   takes an unreadable file for an empty one hands the next writer an empty start to write over. Such
