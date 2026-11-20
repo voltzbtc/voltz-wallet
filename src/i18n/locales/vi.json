@@ -92,6 +92,8 @@
     "words_other": "{{count}} từ",
     "dice": "Tạo bằng xúc xắc (nâng cao)",
     "bootFailed": "Hiện không thể mở các ví trên thiết bị này. Hãy thử lại sau giây lát, hoặc viết cho bộ phận hỗ trợ.",
+    "bootUnreadable": "Không thể mở các ví được lưu ở đây trên điện thoại này. Điều này xảy ra khi dữ liệu của ứng dụng được sao chép từ một điện thoại khác.",
+    "bootRestore": "Xóa và khôi phục",
     "contactSupport": "Viết cho bộ phận hỗ trợ",
     "terms": "Khi tiếp tục, bạn đồng ý với <terms>Điều khoản sử dụng</terms> và xác nhận đã đọc <privacy>Chính sách quyền riêng tư</privacy>."
   },
@@ -371,6 +373,7 @@
     "forgot": "Quên PIN?",
     "forgotTitle": "Xóa các ví để vào lại?",
     "forgotBody": "Không thể khôi phục PIN. Cách duy nhất để vào lại là xóa mọi ví khỏi thiết bị này và khôi phục từng ví bằng cụm từ khôi phục của nó. Không có cụm từ khôi phục, ví và toàn bộ tiền trong đó sẽ mất vĩnh viễn.",
+    "unreadableBody": "Không thể mở các ví được lưu ở đây trên điện thoại này. Cách duy nhất để vào lại là xóa mọi ví khỏi thiết bị này và khôi phục từng ví bằng cụm từ khôi phục của nó. Không có cụm từ khôi phục, ví và toàn bộ tiền trong đó sẽ mất vĩnh viễn.",
     "forgotUnconfirmed": "Ví ở đây có cụm từ khôi phục chưa xác nhận: {{count}}",
     "forgotErase": "Xóa mọi ví khỏi thiết bị này",
     "forgotCheckPrompt": "Xác nhận đây là bạn để xóa các ví",

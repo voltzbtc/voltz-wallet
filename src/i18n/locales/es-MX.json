@@ -94,6 +94,8 @@
     "words_other": "{{count}} palabras",
     "dice": "Generar con dados (avanzado)",
     "bootFailed": "No se pudieron abrir las billeteras de este dispositivo ahora. Inténtalo de nuevo en un momento o escribe a soporte.",
+    "bootUnreadable": "Las billeteras guardadas aquí no se pueden abrir en este teléfono. Esto pasa cuando los datos de la app se copiaron desde otro teléfono.",
+    "bootRestore": "Borrar y restaurar",
     "contactSupport": "Escribir a soporte",
     "terms": "Al continuar, aceptas los <terms>Términos de uso</terms> y confirmas que leíste la <privacy>Política de privacidad</privacy>."
   },
@@ -377,6 +379,7 @@
     "forgot": "¿Olvidaste tu PIN?",
     "forgotTitle": "¿Borrar las billeteras para volver a entrar?",
     "forgotBody": "El PIN no se puede recuperar. La única forma de volver a entrar es borrar todas las billeteras de este dispositivo y restaurar cada una con su frase de recuperación. Sin su frase de recuperación, una billetera y todo su dinero se pierden para siempre.",
+    "unreadableBody": "Las billeteras guardadas aquí no se pueden abrir en este teléfono. La única forma de volver a entrar es borrar todas las billeteras de este dispositivo y restaurar cada una con su frase de recuperación. Sin su frase de recuperación, una billetera y todo su dinero se pierden para siempre.",
     "forgotUnconfirmed": "Billeteras aquí con frase de recuperación sin confirmar: {{count}}",
     "forgotErase": "Borrar todas las billeteras de este dispositivo",
     "forgotCheckPrompt": "Confirma que eres tú para borrar las billeteras",

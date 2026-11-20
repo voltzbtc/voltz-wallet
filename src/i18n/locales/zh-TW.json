@@ -92,6 +92,8 @@
     "words_other": "{{count}} 個單字",
     "dice": "用骰子產生（進階）",
     "bootFailed": "目前無法開啟這部裝置上的錢包。請稍後再試，或寫信給支援。",
+    "bootUnreadable": "儲存在這裡的錢包無法在這支手機上開啟。當 App 的資料是從另一支手機複製過來時，就會發生這種情況。",
+    "bootRestore": "抹除並恢復",
     "contactSupport": "寫信給支援",
     "terms": "繼續即表示你接受<terms>使用條款</terms>，並確認已閱讀<privacy>隱私政策</privacy>。"
   },
@@ -371,6 +373,7 @@
     "forgot": "忘記 PIN 了？",
     "forgotTitle": "抹除錢包後重新進入？",
     "forgotBody": "PIN 無法恢復。重新進入的唯一方法是抹除這部裝置上的所有錢包，再用各自的恢復短語恢復。沒有恢復短語，錢包及其全部資金將永遠遺失。",
+    "unreadableBody": "儲存在這裡的錢包無法在這支手機上開啟。重新進入的唯一方法是抹除這部裝置上的所有錢包，再用各自的恢復短語恢復。沒有恢復短語，錢包及其全部資金將永遠遺失。",
     "forgotUnconfirmed": "此處恢復短語未確認的錢包：{{count}}",
     "forgotErase": "抹除這部裝置上的所有錢包",
     "forgotCheckPrompt": "確認是你本人以抹除錢包",
