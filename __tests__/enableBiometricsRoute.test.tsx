@@ -16,7 +16,7 @@ jest.mock('../src/wallet/pin', () => {
   }
 })
 
-const BIO_SERVICE = 'com.voltz.wallet.biometric'
+const BIO_SERVICE = 'com.voltz.wallet.biometric.currentSet'
 const keychain = new Map<string, string>()
 let write: 'ok' | 'cancel' = 'ok'
 

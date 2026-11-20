@@ -992,6 +992,35 @@ describe('the steps past the unlock with no navigator', () => {
     expect(allText(tree)).not.toContain('NAVIGATOR')
   })
 
+  // The words show only behind a typed PIN, as on the recovery phrase screen, so a biometric unlock
+  // that lands on owed words asks for the PIN on a keypad that offers no biometric.
+  test('a biometric unlock that lands on owed words asks for the typed PIN first', async () => {
+    jest.mocked(activeWalletOwingWords).mockResolvedValue('primary')
+    jest.mocked(Keychain.getSupportedBiometryType).mockResolvedValue(Keychain.BIOMETRY_TYPE.FACE_ID)
+    keychain.set('com.voltz.wallet.biometric.currentSet', '123456')
+    const tree = await boot()
+    // The six dots fill before the biometric unlock hands over.
+    await ReactTestRenderer.act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 1_000))
+    })
+    await settle()
+    expect(allText(tree)).not.toContain('WORDS')
+    expect(pins(tree)).toHaveLength(1)
+    const reads = jest.mocked(Keychain.getGenericPassword).mock.calls.filter(
+      ([options]) => options?.service === 'com.voltz.wallet.biometric.currentSet',
+    ).length
+    expect(reads).toBe(1)
+
+    await typePin(tree, '123456')
+    expect(allText(tree)).toContain('WORDS')
+    // The fresh keypad raised no second prompt.
+    expect(
+      jest.mocked(Keychain.getGenericPassword).mock.calls.filter(
+        ([options]) => options?.service === 'com.voltz.wallet.biometric.currentSet',
+      ),
+    ).toHaveLength(1)
+  })
+
   test('the owed passkey words relock to the PIN, a late answer from them moves nothing, and the PIN leads back to them', async () => {
     jest.mocked(activeWalletOwingWords).mockResolvedValue('primary')
     const tree = await boot()
