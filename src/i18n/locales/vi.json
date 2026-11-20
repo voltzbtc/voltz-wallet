@@ -368,6 +368,7 @@
     "dotsValue": "Đã nhập {{count}} trên {{total}} chữ số",
     "mismatch": "Mã PIN không khớp. Thử lại.",
     "wrong": "Mã PIN sai",
+    "wait": "Nhập sai mã PIN quá nhiều lần. Thử lại sau {{time}}.",
     "biometricPrompt": "Mở khóa Voltz",
     "saveFailed": "Không lưu được PIN của bạn trên thiết bị này. Hãy thử lại.",
     "forgot": "Quên PIN?",

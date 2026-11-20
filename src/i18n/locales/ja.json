@@ -368,6 +368,7 @@
     "dotsValue": "{{total}}桁中{{count}}桁入力済み",
     "mismatch": "PINが一致しません。もう一度お試しください。",
     "wrong": "PINが間違っています",
+    "wait": "PINの誤りが多すぎます。{{time}}後にもう一度お試しください。",
     "biometricPrompt": "Voltzのロックを解除",
     "saveFailed": "このデバイスにPINを保存できませんでした。もう一度お試しください。",
     "forgot": "PINをお忘れですか？",

@@ -374,6 +374,7 @@
     "dotsValue": "הוזנו {{count}} מתוך {{total}} ספרות",
     "mismatch": "קודי ה-PIN לא תואמים. נסה שוב.",
     "wrong": "PIN שגוי",
+    "wait": "יותר מדי קודי PIN שגויים. נסה שוב בעוד {{time}}.",
     "biometricPrompt": "פתיחת Voltz",
     "saveFailed": "לא ניתן היה לשמור את קוד ה-PIN במכשיר הזה. נסה שוב.",
     "forgot": "שכחת את קוד ה-PIN?",

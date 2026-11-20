@@ -368,6 +368,7 @@
     "dotsValue": "已輸入 {{count}} 位，共 {{total}} 位",
     "mismatch": "PIN 碼不符。請重試。",
     "wrong": "PIN 碼錯誤",
+    "wait": "PIN 碼錯誤次數過多。請在 {{time}} 後重試。",
     "biometricPrompt": "解鎖 Voltz",
     "saveFailed": "無法在這部裝置上儲存你的 PIN。請再試一次。",
     "forgot": "忘記 PIN 了？",

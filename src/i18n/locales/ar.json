@@ -383,6 +383,7 @@
     "dotsValue": "الأرقام المدخلة: {{count}} من {{total}}",
     "mismatch": "رمزا PIN غير متطابقين. حاول مرة أخرى.",
     "wrong": "رمز PIN خاطئ",
+    "wait": "رموز PIN خاطئة كثيرة. حاول مرة أخرى بعد {{time}}.",
     "biometricPrompt": "فتح قفل Voltz",
     "saveFailed": "تعذّر حفظ رمز PIN على هذا الجهاز. حاول مرة أخرى.",
     "forgot": "هل نسيت رمز PIN؟",
