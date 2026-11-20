@@ -6,10 +6,19 @@ import { PinScreen } from '../src/screens/PinScreen'
 import { DollarModeProvider } from '../src/wallet/dollarMode'
 import { TabIcon } from '../src/components/TabIcon'
 import { unlockWithBiometrics } from '../src/wallet/biometrics'
-import { verifyPin } from '../src/wallet/pin'
+import { enterPin, pinWaitLeft, verifyPin } from '../src/wallet/pin'
 import { colors, textScale } from '../src/theme'
 
-jest.mock('../src/wallet/pin', () => ({ verifyPin: jest.fn(async () => false) }))
+// The keypad's check, over the comparison each case decides, with no wrong-PIN wait.
+jest.mock('../src/wallet/pin', () => {
+  const compare = jest.fn(async (_pin: string) => false)
+  return {
+    verifyPin: compare,
+    enterPin: jest.fn(async (pin: string) => ((await compare(pin)) ? { ok: true } : { ok: false, waitMs: 0 })),
+    pinWaitLeft: jest.fn(async () => 0),
+    clearPinFailures: jest.fn(async () => undefined),
+  }
+})
 jest.mock('../src/wallet/biometrics', () => ({
   isBiometricUnlockEnabled: jest.fn(async () => true),
   getBiometryKind: jest.fn(async () => 'face'),
@@ -483,5 +492,93 @@ describe('the way out of a forgotten PIN', () => {
       tree.root.findAllByType(Text).some(t => t.props.children === i18n.t('pin.forgot'))
     expect(shown(await render(lock()))).toBe(false)
     expect(shown(await render(<PinScreen mode="set" onDone={() => undefined} />))).toBe(false)
+  })
+})
+
+// Six digits fall to automation in days at a few tries a second, so after too many wrong PINs the
+// keypad takes none until the wait wallet/pin.ts sets has run.
+describe('the wait after too many wrong PINs', () => {
+  const allText = (tree: ReactTestRenderer.ReactTestRenderer): string[] =>
+    tree.root.findAllByType(Text).flatMap(n => (typeof n.props.children === 'string' ? [n.props.children] : []))
+  const typeSix = async (tree: ReactTestRenderer.ReactTestRenderer): Promise<void> => {
+    for (const digit of '123456') {
+      await pressDigit(tree, digit)
+    }
+  }
+  let steady = 5_000
+
+  beforeEach(() => {
+    steady = 5_000
+    jest.spyOn(performance, 'now').mockImplementation(() => steady)
+    jest.mocked(enterPin).mockClear()
+  })
+
+  afterEach(() => {
+    jest.mocked(pinWaitLeft).mockResolvedValue(0)
+    jest.restoreAllMocks()
+  })
+
+  it('says how long to wait and checks nothing typed until the wait ends', async () => {
+    jest.mocked(enterPin).mockResolvedValueOnce({ ok: false, waitMs: 30_000 })
+    const tree = await render(lock())
+    await typeSix(tree)
+    expect(enterPin).toHaveBeenCalledTimes(1)
+    expect(allText(tree)).toContain(i18n.t('pin.wait', { time: '0:30' }))
+
+    await typeSix(tree)
+    expect(enterPin).toHaveBeenCalledTimes(1)
+    expect(filledColours(tree)).toEqual([])
+  })
+
+  it('takes digits again once the wait has run', async () => {
+    // The steady clock stays this test's own; only the screen's once-a-second tick is faked.
+    jest.useFakeTimers({ doNotFake: ['performance'] })
+    try {
+      jest.mocked(enterPin).mockResolvedValueOnce({ ok: false, waitMs: 2_000 })
+      const tree = await render(lock())
+      await typeSix(tree)
+      steady += 2_000
+      await ReactTestRenderer.act(async () => {
+        jest.advanceTimersByTime(1_000)
+      })
+      expect(allText(tree)).not.toContain(i18n.t('pin.wait', { time: '0:02' }))
+      await typeSix(tree)
+      expect(enterPin).toHaveBeenCalledTimes(2)
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('takes no digit while a typed PIN is being checked', async () => {
+    let answer!: (entry: { ok: false; waitMs: number }) => void
+    jest.mocked(enterPin).mockImplementationOnce(() => new Promise(resolve => (answer = resolve)))
+    const tree = await render(lock())
+    await typeSix(tree)
+    // Backspace and a digit would make six again and start a second check alongside the first.
+    for (let i = 0; i < 3; i++) {
+      const backspace = tree.root.findAll(
+        n => n.props.accessibilityLabel === i18n.t('common.backspace') && typeof n.props.onPress === 'function',
+      )[0]
+      if (backspace) {
+        await ReactTestRenderer.act(async () => {
+          backspace.props.onPress()
+        })
+      }
+      await pressDigit(tree, '7')
+    }
+    expect(enterPin).toHaveBeenCalledTimes(1)
+    await ReactTestRenderer.act(async () => {
+      answer({ ok: false, waitMs: 0 })
+    })
+    await typeSix(tree)
+    expect(enterPin).toHaveBeenCalledTimes(2)
+  })
+
+  it('opens on a wait still running when the keypad comes up', async () => {
+    jest.mocked(pinWaitLeft).mockResolvedValue(60_000)
+    const tree = await render(lock())
+    expect(allText(tree)).toContain(i18n.t('pin.wait', { time: '1:00' }))
+    await typeSix(tree)
+    expect(enterPin).not.toHaveBeenCalled()
   })
 })

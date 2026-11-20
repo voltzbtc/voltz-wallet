@@ -369,6 +369,7 @@
     "dotsValue": "{{count}} von {{total}} Ziffern eingegeben",
     "mismatch": "Die PINs stimmen nicht überein. Versuche es erneut.",
     "wrong": "Falsche PIN",
+    "wait": "Zu viele falsche PINs. Versuche es in {{time}} erneut.",
     "biometricPrompt": "Voltz entsperren",
     "saveFailed": "Deine PIN konnte nicht auf diesem Gerät gespeichert werden. Versuch es noch einmal.",
     "forgot": "PIN vergessen?",
