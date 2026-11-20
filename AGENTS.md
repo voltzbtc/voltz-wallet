@@ -233,8 +233,12 @@ Each of these breaks something without breaking the suite.
   seed is absent take that wallet's id back, in the first run and in Add wallet, because the domain,
   the remembered address, purchase proofs and deletion marks are kept per id; other words take the
   primary id only when the registry is empty. A read that throws is not an absent seed: it moves
-  nothing, and the boot stops on its error screen. Android never reaches this state,
-  since the manifest sets `allowBackup="false"`.
+  nothing, and the boot stops on its error screen. Android reaches this state through no backup: the
+  manifest sets `allowBackup="false"`, and `res/xml/data_extraction_rules.xml` excludes every domain
+  from cloud backup and from device-to-device transfer, which some makers still run without it. A copy
+  that arrives anyway brings ciphertexts whose Keystore keys stayed behind, so the boot's first read
+  rejects with `E_CRYPTO_FAILED`; the boot moves nothing on it, since a passing Keystore fault answers
+  the same, and its error screen says what happened and offers the Forgot PIN erase.
   The SDK's own folder (`Documents/spark`), with the payments, the contacts and the address in the
   clear, is flagged out of backups at every connect, so it never crosses; the network gives it back.
   The registry and `passkey-wallets.json` still cross, since they hold ids and fingerprints, not

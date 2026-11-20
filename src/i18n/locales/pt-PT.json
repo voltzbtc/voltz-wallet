@@ -94,6 +94,8 @@
     "words_other": "{{count}} palavras",
     "dice": "Gerar com dados (avançado)",
     "bootFailed": "Não foi possível abrir as carteiras deste dispositivo agora. Tente de novo daqui a pouco ou escreva para o suporte.",
+    "bootUnreadable": "As carteiras guardadas aqui não abrem neste telemóvel. Isto acontece quando os dados da app foram copiados de outro telemóvel.",
+    "bootRestore": "Apagar e restaurar",
     "contactSupport": "Escrever para o suporte",
     "terms": "Ao continuar, aceita os <terms>Termos de utilização</terms> e confirma que leu a <privacy>Política de privacidade</privacy>."
   },
@@ -378,6 +380,7 @@
     "forgot": "Esqueceu-se do PIN?",
     "forgotTitle": "Apagar as carteiras para voltar a entrar?",
     "forgotBody": "O PIN não pode ser recuperado. A única forma de voltar a entrar é apagar todas as carteiras deste dispositivo e restaurar cada uma com a sua frase de recuperação. Sem a frase de recuperação, a carteira e todo o dinheiro dela perdem-se para sempre.",
+    "unreadableBody": "As carteiras guardadas aqui não abrem neste telemóvel. A única forma de voltar a entrar é apagar todas as carteiras deste dispositivo e restaurar cada uma com a sua frase de recuperação. Sem a frase de recuperação, a carteira e todo o dinheiro dela perdem-se para sempre.",
     "forgotUnconfirmed": "Carteiras aqui com frase de recuperação não confirmada: {{count}}",
     "forgotErase": "Apagar todas as carteiras deste dispositivo",
     "forgotCheckPrompt": "Confirme que é você para apagar as carteiras",

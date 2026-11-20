@@ -123,6 +123,11 @@ function App(): React.JSX.Element {
   // The PIN just set or just verified, held only while the biometric offer is on screen.
   const [offer, setOffer] = useState<{ pin: string; kind: NonNullable<BiometryKind> } | null>(null)
   const [forgot, setForgot] = useState(false)
+  // A boot that failed because the Keychain holds entries no key on this phone can open, which is
+  // what a copy of the app's data from another phone leaves (Android's Keystore keys never move).
+  const [unreadable, setUnreadable] = useState(false)
+  // Kept from the press that opened the sheet, since the erase moves the stage while the sheet is up.
+  const [forgotReason, setForgotReason] = useState<'forgot' | 'unreadable'>('forgot')
   // The lock takes only a typed PIN: a biometric unlock landed on words the wallet still owes, which
   // show only behind the typed PIN, as on the recovery phrase screen.
   const [typedOnly, setTypedOnly] = useState(false)
@@ -363,8 +368,11 @@ function App(): React.JSX.Element {
     })()
       .catch((err: unknown) => {
         // Rather than guess whether a wallet or a PIN exists, the boot fails closed on a stage that
-        // opens no wallet and creates no PIN, and offers to run again or to write to support.
+        // opens no wallet and creates no PIN, and offers to run again or to write to support. A read
+        // the Keystore could not decrypt is not an absent seed either, since the same code can come
+        // from a passing fault, so it moves nothing; it adds the way out a person takes on purpose.
         console.warn(`boot did not finish: ${(err as Error)?.message ?? String(err)}`)
+        setUnreadable((err as { code?: unknown } | null)?.code === 'E_CRYPTO_FAILED')
         setStage('bootFailed')
       })
       .finally(() => {
@@ -569,7 +577,10 @@ function App(): React.JSX.Element {
             mode="enter"
             biometrics={!typedOnly}
             onDone={pin => onDone(gen, pin)}
-            onForgot={() => setForgot(true)}
+            onForgot={() => {
+              setForgotReason('forgot')
+              setForgot(true)
+            }}
           />
         )}
       </SafeAreaView>
@@ -627,7 +638,10 @@ function App(): React.JSX.Element {
                     {stage === 'bootFailed' && (
                       <ScrollView contentContainerStyle={styles.centredStage}>
                         <Image source={require('./src/assets/logo.png')} style={styles.logo} />
-                        <ScreenTitle centered subtitle={t('welcome.bootFailed')} />
+                        <ScreenTitle
+                          centered
+                          subtitle={t(unreadable ? 'welcome.bootUnreadable' : 'welcome.bootFailed')}
+                        />
 
                         <View style={styles.welcomeAction}>
                           <GradientButton
@@ -636,6 +650,19 @@ function App(): React.JSX.Element {
                             loading={!booted}
                           />
                         </View>
+                        {unreadable && (
+                          <Touch
+                            onPress={() => {
+                              setForgotReason('unreadable')
+                              setForgot(true)
+                            }}
+                            feedback="link"
+                            style={styles.welcomeSecondary}>
+                            <Txt role="bodyStrong" tone="muted">
+                              {t('welcome.bootRestore')}
+                            </Txt>
+                          </Touch>
+                        )}
                         <Touch
                           onPress={contactSupport}
                           feedback="link"
@@ -734,6 +761,7 @@ function App(): React.JSX.Element {
                 the sheet, its spinner and its error. */}
             <ForgotPinSheet
               visible={forgot}
+              reason={forgotReason}
               onClose={() => setForgot(false)}
               onErasing={eraseStarted}
               onUnfinished={() => setErasing(false)}

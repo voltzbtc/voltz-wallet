@@ -93,6 +93,8 @@
     "words_other": "{{count}} kelime",
     "dice": "Zar ile oluştur (gelişmiş)",
     "bootFailed": "Bu cihazdaki cüzdanlar şu anda açılamadı. Birazdan tekrar dene ya da desteğe yaz.",
+    "bootUnreadable": "Burada kayıtlı cüzdanlar bu telefonda açılamıyor. Bu, uygulamanın verileri başka bir telefondan kopyalandığında olur.",
+    "bootRestore": "Sil ve geri yükle",
     "contactSupport": "Desteğe yaz",
     "terms": "Devam ederek <terms>Kullanım koşullarını</terms> kabul etmiş ve <privacy>Gizlilik politikasını</privacy> okuduğunuzu onaylamış olursunuz."
   },
@@ -375,6 +377,7 @@
     "forgot": "PIN'inizi mi unuttunuz?",
     "forgotTitle": "Geri dönmek için cüzdanlar silinsin mi?",
     "forgotBody": "PIN kurtarılamaz. Geri dönmenin tek yolu bu cihazdaki tüm cüzdanları silmek ve her birini kendi kurtarma ifadesiyle geri yüklemektir. Kurtarma ifadesi olmadan bir cüzdan ve içindeki tüm para sonsuza dek kaybolur.",
+    "unreadableBody": "Burada kayıtlı cüzdanlar bu telefonda açılamıyor. Geri dönmenin tek yolu bu cihazdaki tüm cüzdanları silmek ve her birini kendi kurtarma ifadesiyle geri yüklemektir. Kurtarma ifadesi olmadan bir cüzdan ve içindeki tüm para sonsuza dek kaybolur.",
     "forgotUnconfirmed": "Burada kurtarma ifadesi doğrulanmamış cüzdanlar: {{count}}",
     "forgotErase": "Bu cihazdaki tüm cüzdanları sil",
     "forgotCheckPrompt": "Cüzdanları silmek için siz olduğunuzu doğrulayın",

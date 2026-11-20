@@ -94,6 +94,8 @@
     "words_other": "{{count}} parole",
     "dice": "Genera con i dadi (avanzato)",
     "bootFailed": "Non è stato possibile aprire i wallet di questo dispositivo in questo momento. Riprova tra poco o scrivi all'assistenza.",
+    "bootUnreadable": "I wallet salvati qui non si possono aprire su questo telefono. Succede quando i dati dell'app sono stati copiati da un altro telefono.",
+    "bootRestore": "Cancella e ripristina",
     "contactSupport": "Scrivi all'assistenza",
     "terms": "Continuando, accetti i <terms>Termini di utilizzo</terms> e confermi di aver letto l'<privacy>Informativa sulla privacy</privacy>."
   },
@@ -378,6 +380,7 @@
     "forgot": "Hai dimenticato il PIN?",
     "forgotTitle": "Cancellare i wallet per rientrare?",
     "forgotBody": "Il PIN non si può recuperare. L'unico modo per rientrare è cancellare tutti i wallet da questo dispositivo e ripristinarli ciascuno con la sua frase di recupero. Senza la sua frase di recupero, un wallet e tutto il suo denaro vanno persi per sempre.",
+    "unreadableBody": "I wallet salvati qui non si possono aprire su questo telefono. L'unico modo per rientrare è cancellare tutti i wallet da questo dispositivo e ripristinarli ciascuno con la sua frase di recupero. Senza la sua frase di recupero, un wallet e tutto il suo denaro vanno persi per sempre.",
     "forgotUnconfirmed": "Wallet qui con frase di recupero non confermata: {{count}}",
     "forgotErase": "Cancella tutti i wallet da questo dispositivo",
     "forgotCheckPrompt": "Conferma che sei tu per cancellare i wallet",

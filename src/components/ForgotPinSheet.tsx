@@ -18,11 +18,20 @@ type Props = {
   // An erase that started and failed.
   onUnfinished?: () => void
   onErased: () => void
+  // What brought the person here: a forgotten PIN at the lock, or wallets the boot could not decrypt.
+  reason?: 'forgot' | 'unreadable'
 }
 
 // What the erase costs, said before it can happen. The friction is on purpose, since nothing brings a
 // wallet back without its recovery phrase: this sheet, a tap, and the device's own check.
-export function ForgotPinSheet({ visible, onClose, onErasing, onUnfinished, onErased }: Props): React.JSX.Element {
+export function ForgotPinSheet({
+  visible,
+  onClose,
+  onErasing,
+  onUnfinished,
+  onErased,
+  reason = 'forgot',
+}: Props): React.JSX.Element {
   const { t } = useTranslation()
   const [busy, setBusy] = useState(false)
   const [failure, setFailure] = useState<'unchecked' | 'unfinished' | null>(null)
@@ -81,7 +90,7 @@ export function ForgotPinSheet({ visible, onClose, onErasing, onUnfinished, onEr
       closeLabel={t('common.close')}>
       <Txt role="subheading">{t('pin.forgotTitle')}</Txt>
       <Txt role="body" tone="muted">
-        {t('pin.forgotBody')}
+        {t(reason === 'unreadable' ? 'pin.unreadableBody' : 'pin.forgotBody')}
       </Txt>
       {unconfirmed !== null && unconfirmed > 0 && (
         // A warning rather than an alarm, so the one red block under it is the action.

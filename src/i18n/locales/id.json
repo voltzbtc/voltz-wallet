@@ -92,6 +92,8 @@
     "words_other": "{{count}} kata",
     "dice": "Buat dengan dadu (tingkat lanjut)",
     "bootFailed": "Dompet di perangkat ini tidak dapat dibuka saat ini. Coba lagi sebentar lagi, atau tulis ke dukungan.",
+    "bootUnreadable": "Dompet yang tersimpan di sini tidak dapat dibuka di ponsel ini. Ini terjadi jika data aplikasi disalin dari ponsel lain.",
+    "bootRestore": "Hapus dan pulihkan",
     "contactSupport": "Tulis ke dukungan",
     "terms": "Dengan melanjutkan, Anda menyetujui <terms>Ketentuan penggunaan</terms> dan menyatakan telah membaca <privacy>Kebijakan privasi</privacy>."
   },
@@ -372,6 +374,7 @@
     "forgot": "Lupa PIN Anda?",
     "forgotTitle": "Hapus dompet untuk masuk kembali?",
     "forgotBody": "PIN tidak dapat dipulihkan. Satu-satunya cara untuk masuk kembali adalah menghapus semua dompet dari perangkat ini dan memulihkan masing-masing dengan frasa pemulihannya. Tanpa frasa pemulihan, dompet dan semua uangnya hilang selamanya.",
+    "unreadableBody": "Dompet yang tersimpan di sini tidak dapat dibuka di ponsel ini. Satu-satunya cara untuk masuk kembali adalah menghapus semua dompet dari perangkat ini dan memulihkan masing-masing dengan frasa pemulihannya. Tanpa frasa pemulihan, dompet dan semua uangnya hilang selamanya.",
     "forgotUnconfirmed": "Dompet di sini dengan frasa pemulihan belum dikonfirmasi: {{count}}",
     "forgotErase": "Hapus semua dompet dari perangkat ini",
     "forgotCheckPrompt": "Konfirmasi bahwa ini Anda untuk menghapus dompet",

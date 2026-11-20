@@ -93,6 +93,8 @@
     "words_other": "{{count}} words",
     "dice": "Generate with dice (advanced)",
     "bootFailed": "The wallets on this device could not be opened right now. Try again in a moment, or write to support.",
+    "bootUnreadable": "The wallets saved here can't be opened on this phone. This happens when the app's data was copied from another phone.",
+    "bootRestore": "Erase and restore",
     "contactSupport": "Write to support",
     "terms": "By continuing, you accept the <terms>Terms of use</terms> and acknowledge the <privacy>Privacy policy</privacy>."
   },
@@ -375,6 +377,7 @@
     "forgot": "Forgot your PIN?",
     "forgotTitle": "Erase the wallets to get back in?",
     "forgotBody": "A PIN can't be recovered. The only way back in is to erase every wallet from this device and restore each one with its recovery phrase. Without its recovery phrase, a wallet and all its money are lost for good.",
+    "unreadableBody": "The wallets saved here can't be opened on this phone. The only way back in is to erase every wallet from this device and restore each one with its recovery phrase. Without its recovery phrase, a wallet and all its money are lost for good.",
     "forgotUnconfirmed": "Wallets here with an unconfirmed recovery phrase: {{count}}",
     "forgotErase": "Erase all wallets from this device",
     "forgotCheckPrompt": "Confirm it's you to erase the wallets",
