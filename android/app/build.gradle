@@ -185,4 +185,9 @@ dependencies {
     // which stays off this module's compile classpath, and compileOnly adds nothing to what ships. The
     // version follows VisionCamera's android/build.gradle, and scanGallery.test.tsx holds the two equal.
     compileOnly("com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1")
+
+    // Biometric unlock (android/app/src/main/java/app/usevoltz/biometric) compiles against the
+    // androidx.biometric that react-native-keychain already puts in the APK, the same way. The version
+    // follows that library's android/build.gradle, and biometrics.test.ts holds the two equal.
+    compileOnly("androidx.biometric:biometric:1.1.0")
 }

@@ -421,3 +421,28 @@ test('the gate of the recovery phrase offers no way out of a forgotten PIN', asy
   expect(allText(tree)).not.toContain(i18n.t('pin.forgot'))
   await unmount(tree)
 })
+
+// A biometric can be released by what the phone's passcode alone can do: enrolling another face or
+// finger on iOS, and on Android a key that opened for seconds after any unlock. The words are the
+// wallet, so the screen asks for the typed PIN even with biometric unlock on, and never raises the
+// prompt.
+test('the words need the typed PIN even with biometric unlock on', async () => {
+  await addFirstWallet(FIRST, undefined, 'drawn')
+  keychain.set(PIN_SERVICE, PIN)
+  // The entry under both names: this version's, and the one every earlier version wrote.
+  keychain.set('com.voltz.wallet.biometric.currentSet', PIN)
+  keychain.set('com.voltz.wallet.biometric', PIN)
+  jest.mocked(Keychain.getSupportedBiometryType).mockResolvedValue(Keychain.BIOMETRY_TYPE.FACE_ID)
+
+  const tree = await mount(<RecoveryPhraseScreen />)
+  expect(wordsOn(tree)).toEqual([])
+  const biometricReads = jest
+    .mocked(Keychain.getGenericPassword)
+    .mock.calls.filter(([options]) => options?.service !== PIN_SERVICE)
+  expect(biometricReads).toEqual([])
+  expect(tree.root.findAll(n => n.props.label === i18n.t('pin.biometricPrompt'))).toEqual([])
+  await unmount(tree)
+
+  const shown = await recoveryPhrase()
+  expect(shown.words).toEqual(FIRST.split(' '))
+})
