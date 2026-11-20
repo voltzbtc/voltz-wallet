@@ -156,7 +156,13 @@ An install whose PIN came before the offer meets it after a keypad unlock, once 
 Touching the biometric switch in PIN settings, either way, also marks the offer as made, so turning
 biometrics off there is not answered by an offer at the next unlock; that mark is not waited on.
 
-Turning it on stores the PIN just typed behind a biometric-gated Keychain entry. On Android the
-write raises the system prompt, worded by the caller (confirm your face or fingerprint, and the
-shared cancel), and a cancelled prompt stores nothing: the offer stays up with a message, and the
-PIN settings route goes back with the switch off.
+Turning it on stores the PIN just typed where only a biometric releases it: on iOS a Keychain entry
+behind `BiometryCurrentSet`, on Android the app's own module (`specs/NativeVoltzBiometric.ts`), whose
+key opens once per strong biometric. On Android the write raises the system prompt, worded by the
+caller (confirm your face or fingerprint, and the shared cancel), and a cancelled prompt stores
+nothing: the offer stays up with a message, and the PIN settings route goes back with the switch off.
+Why neither can be the device's passcode is in [app-lock.md](app-lock.md).
+
+An install that turned biometric unlock on before this module existed kept the copy under an entry that
+the passcode could release. That entry is never read again: the lock asks for the PIN, and the
+keypad unlock removes the entry and offers biometric unlock again, whatever the mark says.
