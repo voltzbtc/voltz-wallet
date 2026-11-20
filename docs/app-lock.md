@@ -105,6 +105,27 @@ already past its turn, and refuses every connect until the erase ends: the next 
 erased primary id, and a connection left on the erased seed would be kept for it. An erase that fails
 brings the keypad back with the sheet's error.
 
+## What a biometric may stand in for
+
+The PIN exists so that a phone that is unlocked, or whose passcode someone knows, does not open the
+wallet. A biometric stands in for the PIN only where the passcode cannot release it:
+
+- **iOS** keeps the PIN's copy in the Keychain behind `BiometryCurrentSet`. `BiometryAny`, which
+  earlier versions wrote, opens for a face or finger enrolled afterwards, and enrolling needs only
+  the passcode. A change to the enrolled set leaves the entry unreadable, and the next unlock removes
+  it, so the switch shows off.
+- **Android** keeps it under a key of the app's own module, `specs/NativeVoltzBiometric.ts`, that the
+  Keystore lets work for one operation at a time, after a strong biometric on the prompt that carries
+  that operation (`BiometricPrompt.CryptoObject`), and that a new enrollment invalidates. Every key
+  react-native-keychain makes for an authenticated entry (10.0.0 and 11.0.0) opens for five seconds
+  after any strong biometric or device credential, the lock screen's unlock included, and the library
+  decrypts before it prompts, so unlocking the phone with its passcode and opening the app within five
+  seconds released the PIN with no prompt. The pattern is the one in Android's biometric guide and in
+  Blockstream Green (`AndroidKeystore.kt`).
+- **The recovery words** always ask for the typed PIN, as Phoenix asks its own PIN before showing them
+  (`DisplaySeedView.kt`). The words are the wallet, and no platform rule about biometrics should
+  decide whether they show.
+
 ## Accepted residue
 
 - The keyboard is closed on every leave, short trips included, since it is a window above the cover.
@@ -122,6 +143,9 @@ brings the keypad back with the sheet's error.
 - TalkBack and VoiceOver find only the mark while the cover is up.
 - The iOS clock keeps counting across a real sleep, and a date changed in Settings moves neither
   clock.
+- On Android, unlocking the phone with its passcode and opening the app at once shows the biometric
+  prompt, never the wallet; a fingerprint enrolled after biometric unlock was turned on turns it off;
+  and on iOS a face or finger enrolled afterwards does the same.
 - The biometric prompt over the lock, the photo picker and the store's sheet ask nothing on Android
   when answered within ten minutes, and Home pressed inside the photo picker with a return after ten
   minutes comes back covered and shows the PIN.

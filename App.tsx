@@ -128,6 +128,9 @@ function App(): React.JSX.Element {
   const [unreadable, setUnreadable] = useState(false)
   // Kept from the press that opened the sheet, since the erase moves the stage while the sheet is up.
   const [forgotReason, setForgotReason] = useState<'forgot' | 'unreadable'>('forgot')
+  // The lock takes only a typed PIN: a biometric unlock landed on words the wallet still owes, which
+  // show only behind the typed PIN, as on the recovery phrase screen.
+  const [typedOnly, setTypedOnly] = useState(false)
   // The wallet whose words are owed before the step after them. Only its id: the words stay in the
   // Keychain, and their screen reads them for as long as it is up.
   const [owed, setOwed] = useState<{ id: string; next: 'setPin' | 'ready' } | null>(null)
@@ -499,6 +502,14 @@ function App(): React.JSX.Element {
     if (gen !== lockGen.current) {
       return
     }
+    if (owing && !pin) {
+      // After a biometric unlock the words wait for a typed PIN, on a fresh keypad with no biometric.
+      lockGen.current += 1
+      setLockSeq(lockGen.current)
+      setTypedOnly(true)
+      return
+    }
+    setTypedOnly(false)
     if (owing) {
       setOwed({ id: owing, next: 'ready' })
       setStage('passkeyWords')
@@ -561,10 +572,16 @@ function App(): React.JSX.Element {
     return (
       <SafeAreaView testID="lock" style={styles.safeArea} onLayout={lockDrawn}>
         {!erasing && (
-          <PinScreen key={gen} mode="enter" onDone={pin => onDone(gen, pin)} onForgot={() => {
-            setForgotReason('forgot')
-            setForgot(true)
-          }} />
+          <PinScreen
+            key={gen}
+            mode="enter"
+            biometrics={!typedOnly}
+            onDone={pin => onDone(gen, pin)}
+            onForgot={() => {
+              setForgotReason('forgot')
+              setForgot(true)
+            }}
+          />
         )}
       </SafeAreaView>
     )

@@ -15,7 +15,7 @@ jest.mock('../src/navigation/RootNavigator', () => {
 
 const SEED_SERVICE = 'com.voltz.wallet.seed'
 const PIN_SERVICE = 'com.voltz.wallet.pin'
-const BIO_SERVICE = 'com.voltz.wallet.biometric'
+const BIO_SERVICE = 'com.voltz.wallet.biometric.currentSet'
 const VALID_12 =
   'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 
@@ -45,8 +45,10 @@ beforeEach(() => {
     if (service === BIO_SERVICE && biometricRead === 'cancel') {
       throw new Error('code: 13, msg: Cancel')
     }
+    // A face or finger that does not match ends the prompt with errSecAuthFailed, which the library
+    // rejects with; only an entry that is not there reads as false.
     if (service === BIO_SERVICE && biometricRead === 'fail') {
-      return false
+      throw new Error('code: -25293, msg: Authentication failed')
     }
     const password = keychain.get(service)
     return password === undefined ? false : ({ username: 'u', password } as never)
@@ -157,7 +159,7 @@ describe('the offer right after the first PIN', () => {
     expect(writes).toHaveLength(1)
     expect(writes[0][2]).toEqual(
       expect.objectContaining({
-        accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY,
+        accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET,
         authenticationPrompt: { title: 'Confirm your fingerprint', cancel: 'Cancel' },
       }),
     )
@@ -373,7 +375,7 @@ describe('the offer after a keypad unlock', () => {
     expect(writes).toHaveLength(1)
     expect(writes[0][2]).toEqual(
       expect.objectContaining({
-        accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY,
+        accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET,
         authenticationPrompt: { title: 'Confirm your fingerprint', cancel: 'Cancel' },
       }),
     )

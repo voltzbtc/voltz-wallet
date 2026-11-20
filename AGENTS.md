@@ -239,6 +239,10 @@ Each of these breaks something without breaking the suite.
   that arrives anyway brings ciphertexts whose Keystore keys stayed behind, so the boot's first read
   rejects with `E_CRYPTO_FAILED`; the boot moves nothing on it, since a passing Keystore fault answers
   the same, and its error screen says what happened and offers the Forgot PIN erase.
+  The SDK's own folder (`Documents/spark`), with the payments, the contacts and the address in the
+  clear, is flagged out of backups at every connect, so it never crosses; the network gives it back.
+  The registry and `passkey-wallets.json` still cross, since they hold ids and fingerprints, not
+  payments, and the words of a listed wallet take its id back only because the list crossed.
 - **A file whose loss costs wallets or money is never written in place.** Android's `writeFile`
   truncates before it writes, so a process killed mid write leaves the file torn, and a reader that
   takes an unreadable file for an empty one hands the next writer an empty start to write over. Such

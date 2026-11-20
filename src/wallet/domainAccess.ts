@@ -1,4 +1,6 @@
 import RNFS from 'react-native-fs'
+import { sha256 } from '@noble/hashes/sha2.js'
+import { utf8ToBytes } from '@noble/hashes/utils.js'
 
 // Letting another person hold an address on a domain the owner bought. The gateway rebuilds this
 // statement to verify the signature, so the two must stay byte-identical or every request is
@@ -32,27 +34,31 @@ export function isWalletKey(value: string): boolean {
   return PUBKEY.test(value.trim())
 }
 
+// Crockford's base32, which leaves out I, L, O and U, so no character read aloud is taken for another.
+const CODE_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
+// Five bits a character.
+const CODE_LENGTH = 12
+
 // What a person reads out loud to check they are approving the right wallet. A pubkey is 66
 // characters of hex that nobody verifies by eye, so both screens show this instead and the owner
-// compares. It works like a Signal safety number, which does not add secrecy but makes a swapped
-// key visible.
+// compares, as with a Signal safety number. The key arrives by paste or scan, often over a channel
+// someone else can alter, so this is the check that makes a swapped key visible: anyone can grind
+// keys against a short code, which 32 bits fell to in hours, while 60 bits of SHA-256 cost about
+// 2^60 key derivations.
 //
 // Derived from the key itself, so the two devices arrive at it independently with nothing shared.
 export function walletCode(pubkey: string): string {
-  const key = pubkey.trim().toLowerCase()
-  // FNV-1a over the key bytes. Not a security boundary, just a stable short digest; the signature is
-  // what authorises, and this only has to make a substituted key look different.
-  let hash = 0x811c9dc5
-  for (let i = 0; i < key.length; i += 1) {
-    // FNV-1a is defined in terms of xor and unsigned truncation; writing it without them would be
-    // writing a different function.
-    // eslint-disable-next-line no-bitwise
-    hash ^= key.charCodeAt(i)
-    // eslint-disable-next-line no-bitwise
-    hash = Math.imul(hash, 0x01000193) >>> 0
+  // The hex text in one case, never decoded, so a malformed key from a list still draws a code
+  // rather than throwing in a render.
+  const digest = sha256(utf8ToBytes(pubkey.trim().toLowerCase()))
+  // The first 60 bits: eight bytes less the last four bits.
+  let rest = digest.slice(0, 8).reduce((acc, byte) => acc * 256n + BigInt(byte), 0n) / 16n
+  let code = ''
+  for (let i = 0; i < CODE_LENGTH; i += 1) {
+    code = CODE_ALPHABET[Number(rest % 32n)] + code
+    rest /= 32n
   }
-  const text = hash.toString(16).toUpperCase().padStart(8, '0')
-  return `${text.slice(0, 4)} ${text.slice(4)}`
+  return `${code.slice(0, 4)} ${code.slice(4, 8)} ${code.slice(8)}`
 }
 
 // Accepts what a scan or a paste can produce, which is the bare key or the URI the other screen
