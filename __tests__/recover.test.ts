@@ -267,12 +267,15 @@ describe('nothing pending', () => {
 })
 
 describe('a name that was paid for and never received', () => {
-  test('is confirmed on the domain it was sold on, not the one the build ships with', async () => {
+  // Named in the body and sent to the build's domain, so the domain read from the gateway's answer
+  // is never a host the app connects to.
+  test('is confirmed on the domain it was sold on, named in the body at the build domain', async () => {
     const { deps, calls } = harness({ pending: ok({ charges: [NAME_CHARGE] }) })
     const found = await recoverPurchases(deps)
     const confirm = calls.find(c => c.url.includes('/api/quote/confirm'))
-    expect(confirm?.url).toBe(`https://${SOLD_ON}/api/quote/confirm`)
+    expect(confirm?.url).toBe(`https://${BUILD}/api/quote/confirm`)
     expect(confirm?.body).toEqual({
+      host: SOLD_ON,
       username: 'bakery',
       pubkey: PUBKEY,
       reference: 'ref-name',

@@ -241,7 +241,15 @@ export async function openStoreOrder(
   try {
     const timestamp = nowSecs(deps)
     const signature = await deps.sign(storeOrderMessage(deps.domain, deps.pubkey, store, kind, subject, timestamp))
-    reply = await post(deps, '/api/store/order', { store, kind, subject, pubkey: deps.pubkey, signature, timestamp })
+    reply = await post(deps, '/api/store/order', {
+      host: deps.domain,
+      store,
+      kind,
+      subject,
+      pubkey: deps.pubkey,
+      signature,
+      timestamp,
+    })
   } catch {
     return { kind: 'retry' }
   }
@@ -358,7 +366,10 @@ export async function confirmStorePurchase(
   const { store, reference, key } = purchase
   const reply = await sendSigned(deps, '/api/store/confirm', timestamp => ({
     message: storeConfirmMessage(deps.domain, deps.pubkey, store, reference, key, timestamp),
-    body: store === 'apple' ? { store, reference, transactionId: key } : { store, reference, purchaseToken: key },
+    body:
+      store === 'apple'
+        ? { host: deps.domain, store, reference, transactionId: key }
+        : { host: deps.domain, store, reference, purchaseToken: key },
   }))
   return confirmVerdict(reply, reference)
 }
@@ -443,7 +454,7 @@ export async function recordSpendIntent(deps: StoreGatewayDeps, username: string
   try {
     const timestamp = nowSecs(deps)
     const signature = await deps.sign(storeSpendMessage(deps.domain, deps.pubkey, username, timestamp))
-    reply = await post(deps, '/api/store/spend', { username, pubkey: deps.pubkey, signature, timestamp })
+    reply = await post(deps, '/api/store/spend', { host: deps.domain, username, pubkey: deps.pubkey, signature, timestamp })
   } catch {
     return { kind: 'retry' }
   }
