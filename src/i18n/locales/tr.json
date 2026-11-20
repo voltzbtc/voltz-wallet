@@ -369,6 +369,7 @@
     "dotsValue": "{{total}} rakamdan {{count}} tanesi girildi",
     "mismatch": "PIN'ler eşleşmiyor. Tekrar deneyin.",
     "wrong": "Yanlış PIN",
+    "wait": "Çok fazla yanlış PIN. {{time}} sonra tekrar deneyin.",
     "biometricPrompt": "Voltz'un kilidini aç",
     "saveFailed": "PIN'iniz bu cihaza kaydedilemedi. Tekrar deneyin.",
     "forgot": "PIN'inizi mi unuttunuz?",

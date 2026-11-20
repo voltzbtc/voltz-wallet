@@ -105,12 +105,25 @@ already past its turn, and refuses every connect until the erase ends: the next 
 erased primary id, and a connection left on the erased seed would be kept for it. An erase that fails
 brings the keypad back with the sheet's error.
 
+## Wrong PINs
+
+Six digits fall to automation in days at a few tries a second, so `enterPin` in `src/wallet/pin.ts`
+counts wrong PINs in a row in the Keychain beside the PIN, and counts each attempt before it compares,
+so ending the app mid-check still counted it. After five, each wrong PIN waits twice as long as the one
+before, from 30 s up to an hour, about 24 tries a day at the top; nothing is erased, as Phoenix erases
+nothing (`CheckPinViewModel.kt`). The wait runs on the process's steady clock, which Settings cannot
+move, and a new process waits the whole wait for the count again, so neither setting the clock forward
+nor closing the app shortens it. A right PIN, or a biometric, clears the count, and so does erasing
+the PIN. Every keypad that asks for the PIN shares it: the lock, the recovery words, changing the PIN
+and turning on biometric unlock.
+
 ## Accepted residue
 
 - The keyboard is closed on every leave, short trips included, since it is a window above the cover.
 - On Android, a person who leaves the app from inside one of its own activities (the home button on
   the photo picker) is locked after ten minutes, not two, and the trip is counted from the activity's
   start.
+- A person who waits out each wait while the keypad is open still gets about 24 tries a day.
 - iOS system sheets that are not presented controllers (the App Store purchase sheet, the passkey
   sheet) are not dismissed by the lock.
 

@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Animated, Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '../components/Text'
 import { useTranslation } from 'react-i18next'
-import { verifyPin } from '../wallet/pin'
+import { clearPinFailures, enterPin, pinWaitLeft } from '../wallet/pin'
+import { formatClock } from '../wallet/clock'
 import {
   getBiometryKind,
   isBiometricUnlockEnabled,
@@ -117,7 +118,7 @@ function PinKey({
 
 // Format and storage logic lives in wallet/pin.ts.
 export function PinScreen(props: Props): React.JSX.Element {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   // Orange outside DollarModeProvider, which is where the boot lock and onboarding draw this screen.
   const { accent } = useAccent()
   const [entered, setEntered] = useState('')
@@ -145,6 +146,53 @@ export function PinScreen(props: Props): React.JSX.Element {
     },
     [],
   )
+
+  // While too many wrong PINs wait out their time: when the keypad takes a PIN again, on the steady
+  // clock pinWaitLeft uses, and the moment last drawn, which moves once a second.
+  const [waitUntil, setWaitUntil] = useState<number | null>(null)
+  const [, setTick] = useState(0)
+  const waiting = waitUntil !== null
+
+  function startWait(ms: number) {
+    setEntered('')
+    setWaitUntil(performance.now() + ms)
+    // Said once, with the whole wait; the clock drawn below counts it down without speaking.
+    setError(t('pin.wait', { time: formatClock(ms, i18n.language) }))
+  }
+
+  useEffect(() => {
+    if (props.mode !== 'enter') {
+      return
+    }
+    let active = true
+    pinWaitLeft()
+      .then(left => {
+        if (active && left > 0) {
+          startWait(left)
+        }
+      })
+      .catch((err: unknown) => console.warn(`pin wait not read: ${(err as Error)?.message ?? String(err)}`))
+    return () => {
+      active = false
+    }
+    // The mode never changes on a mounted keypad.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (waitUntil === null) {
+      return
+    }
+    const timer = setInterval(() => {
+      if (performance.now() >= waitUntil) {
+        setWaitUntil(null)
+        setError(null)
+      } else {
+        setTick(n => n + 1)
+      }
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [waitUntil])
 
   // The enable-biometrics flow passes biometrics={false} so the keypad can capture the typed PIN.
   const biometricsAllowed = props.mode === 'enter' && props.biometrics !== false
@@ -204,10 +252,14 @@ export function PinScreen(props: Props): React.JSX.Element {
       return
     }
 
-    if (await verifyPin(pin)) {
+    const entry = await enterPin(pin)
+    if (entry.ok) {
       props.onDone(pin)
-    } else {
-      reject(t('pin.wrong'))
+      return
+    }
+    reject(t('pin.wrong'))
+    if (entry.waitMs > 0) {
+      startWait(entry.waitMs)
     }
   }
 
@@ -218,6 +270,10 @@ export function PinScreen(props: Props): React.JSX.Element {
     if (filling.current || !(await unlockWithBiometrics(t('pin.biometricPrompt'), t('common.cancel')))) {
       return
     }
+    // The owner's biometric ends any run of wrong PINs.
+    clearPinFailures().catch((err: unknown) =>
+      console.warn(`pin failures not cleared: ${(err as Error)?.message ?? String(err)}`),
+    )
     const done = props.onDone
     // A rejected onDone leaves the screen up with the app closed, so the keypad and this key answer again.
     const open = async (): Promise<void> => {
@@ -267,7 +323,8 @@ export function PinScreen(props: Props): React.JSX.Element {
   }, [])
 
   function press(key: string) {
-    if (filling.current) {
+    // A wait takes no digit, so nothing typed during it is checked when it ends.
+    if (filling.current || waiting) {
       return
     }
     if (key === 'del') {
@@ -306,7 +363,9 @@ export function PinScreen(props: Props): React.JSX.Element {
       <View style={styles.errorSlot}>
         {error && (
           <Txt role="caption" tone="danger" accessibilityRole="alert" style={styles.error}>
-            {error}
+            {waitUntil !== null
+              ? t('pin.wait', { time: formatClock(Math.max(0, waitUntil - performance.now()), i18n.language) })
+              : error}
           </Txt>
         )}
       </View>

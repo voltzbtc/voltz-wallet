@@ -366,6 +366,7 @@
     "dotsValue": "{{total}}자리 중 {{count}}자리 입력됨",
     "mismatch": "PIN이 일치하지 않습니다. 다시 시도하세요.",
     "wrong": "잘못된 PIN",
+    "wait": "잘못된 PIN이 너무 많습니다. {{time}} 후에 다시 시도하세요.",
     "biometricPrompt": "Voltz 잠금 해제",
     "saveFailed": "이 기기에 PIN을 저장하지 못했습니다. 다시 시도하세요.",
     "forgot": "PIN을 잊으셨나요?",

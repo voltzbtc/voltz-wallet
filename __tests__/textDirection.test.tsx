@@ -19,7 +19,16 @@ import { parseAmountSat } from '../src/wallet/amount'
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 47, bottom: 34, left: 0, right: 0 }),
 }))
-jest.mock('../src/wallet/pin', () => ({ verifyPin: jest.fn(async () => false) }))
+// The keypad's check, over the comparison each case decides, with no wrong-PIN wait.
+jest.mock('../src/wallet/pin', () => {
+  const compare = jest.fn(async (_pin: string) => false)
+  return {
+    verifyPin: compare,
+    enterPin: jest.fn(async (pin: string) => ((await compare(pin)) ? { ok: true } : { ok: false, waitMs: 0 })),
+    pinWaitLeft: jest.fn(async () => 0),
+    clearPinFailures: jest.fn(async () => undefined),
+  }
+})
 jest.mock('../src/wallet/biometrics', () => ({
   isBiometricUnlockEnabled: jest.fn(async () => false),
   getBiometryKind: jest.fn(async () => null),

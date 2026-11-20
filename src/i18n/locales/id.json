@@ -366,6 +366,7 @@
     "dotsValue": "{{count}} dari {{total}} digit dimasukkan",
     "mismatch": "PIN tidak cocok. Coba lagi.",
     "wrong": "PIN salah",
+    "wait": "Terlalu banyak PIN salah. Coba lagi dalam {{time}}.",
     "biometricPrompt": "Buka kunci Voltz",
     "saveFailed": "PIN Anda tidak dapat disimpan di perangkat ini. Coba lagi.",
     "forgot": "Lupa PIN Anda?",
