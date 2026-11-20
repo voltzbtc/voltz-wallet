@@ -36,3 +36,56 @@ test.each(secure)('every secure field in %s is typed as a one-time code', file =
   expect(fields).toBeGreaterThan(0)
   expect(count(text, 'textContentType="oneTimeCode"')).toBe(fields)
 })
+
+// A revealed field is no longer a password field, and an Android IME learns from what is typed in
+// it unless the field is the visible-password variation. Gboard and SwiftKey keep learned words and
+// offer them in other apps, and SwiftKey syncs them to its cloud.
+test.each(secure)('every secure field in %s takes the visible-password keyboard when revealed', file => {
+  const text = readFileSync(join(ROOT, file), 'utf8')
+  expect(count(text, 'keyboardType={revealedKeyboard(reveal)}')).toBe(count(text, 'secureTextEntry='))
+})
+
+describe('the keyboard a passphrase field takes', () => {
+  const { Platform } = require('react-native')
+  const { revealedKeyboard } = require('../src/components/PassphraseField')
+  const original = Platform.OS
+  afterEach(() => {
+    Platform.OS = original
+  })
+
+  test('on Android, revealed, is the visible-password variation', () => {
+    Platform.OS = 'android'
+    expect(revealedKeyboard(true)).toBe('visible-password')
+    expect(revealedKeyboard(false)).toBe('default')
+  })
+
+  test('on iOS is the default, where the variation does not exist', () => {
+    Platform.OS = 'ios'
+    expect(revealedKeyboard(true)).toBe('default')
+  })
+})
+
+test('the passphrase field passes the revealed keyboard to its input when the eye is pressed', () => {
+  const React = require('react')
+  const ReactTestRenderer = require('react-test-renderer')
+  const { Platform, TextInput } = require('react-native')
+  const { PassphraseField } = require('../src/components/PassphraseField')
+  require('../src/i18n')
+  const original = Platform.OS
+  Platform.OS = 'android'
+  try {
+    let tree: any
+    ReactTestRenderer.act(() => {
+      tree = ReactTestRenderer.create(React.createElement(PassphraseField, { value: '', onChangeText: () => undefined }))
+    })
+    const input = () => tree.root.findAllByType(TextInput)[0]
+    expect(input().props.keyboardType).toBe('default')
+    expect(input().props.secureTextEntry).toBe(true)
+    const eye = tree.root.findAll((n: any) => typeof n.props.onPress === 'function')[0]
+    ReactTestRenderer.act(() => eye.props.onPress())
+    expect(input().props.secureTextEntry).toBe(false)
+    expect(input().props.keyboardType).toBe('visible-password')
+  } finally {
+    Platform.OS = original
+  }
+})

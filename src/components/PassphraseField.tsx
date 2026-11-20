@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { StyleSheet } from 'react-native'
+import { Platform, StyleSheet } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { Field } from './Field'
 import { TabIcon } from './TabIcon'
@@ -30,6 +30,9 @@ export function PassphraseField({ value, onChangeText }: Props): React.JSX.Eleme
       // carry the passphrase to iCloud Keychain; iOS 26.5 does not offer a one-time code field.
       textContentType="oneTimeCode"
       importantForAutofill="no"
+      // Revealed, the field stops being a password field, and an Android IME learns from it. The
+      // visible-password variation is the one it treats as a password while drawing the text.
+      keyboardType={revealedKeyboard(reveal)}
       trailing={
         <Touch
           onPress={() => setReveal(r => !r)}
@@ -46,6 +49,11 @@ export function PassphraseField({ value, onChangeText }: Props): React.JSX.Eleme
       }
     />
   )
+}
+
+// The keyboard a passphrase field takes, shown or hidden. A hidden field is a password field already.
+export function revealedKeyboard(reveal: boolean): 'visible-password' | 'default' {
+  return Platform.OS === 'android' && reveal ? 'visible-password' : 'default'
 }
 
 const styles = StyleSheet.create({
