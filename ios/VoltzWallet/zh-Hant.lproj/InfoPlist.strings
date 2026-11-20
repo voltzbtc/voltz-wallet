@@ -1,0 +1,4 @@
+"NSFaceIDUsageDescription" = "使用 Face ID 解鎖你的 Voltz 錢包。";
+"NSCameraUsageDescription" = "Voltz 使用相機掃描付款二維碼和拍攝錢包照片。";
+"NSPhotoLibraryUsageDescription" = "Voltz 使用你的照片設定錢包頭像。";
+"NFCReaderUsageDescription" = "Voltz 讀取 NFC 標籤以載入付款目標。";

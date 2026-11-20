@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Voltz</string>
+    <!-- Android 8 and up refuses to show a notification with no channel, and Firebase falls back
+         to this id when a message does not name one. Without it every push is delivered to the
+         device and silently never drawn. -->
+    <string name="default_notification_channel_id">payments</string>
+    <string name="default_notification_channel_name">Payments and domains</string>
+</resources>

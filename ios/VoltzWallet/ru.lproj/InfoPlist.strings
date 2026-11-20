@@ -1,0 +1,4 @@
+"NSFaceIDUsageDescription" = "Используйте Face ID, чтобы разблокировать кошелёк Voltz.";
+"NSCameraUsageDescription" = "Voltz использует камеру для сканирования платёжных QR-кодов и для фото кошелька.";
+"NSPhotoLibraryUsageDescription" = "Voltz использует ваши фото, чтобы задать изображение кошелька.";
+"NFCReaderUsageDescription" = "Voltz считывает NFC-метки, чтобы загрузить получателя платежа.";

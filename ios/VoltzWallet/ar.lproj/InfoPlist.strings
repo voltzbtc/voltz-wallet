@@ -1,0 +1,4 @@
+"NSFaceIDUsageDescription" = "استخدم Face ID لفتح قفل محفظة Voltz الخاصة بك.";
+"NSCameraUsageDescription" = "تُستخدم الكاميرا لمسح رموز QR الخاصة بالدفع ولالتقاط صورة للمحفظة.";
+"NSPhotoLibraryUsageDescription" = "تُستخدم صورك لتعيين صورة للمحفظة.";
+"NFCReaderUsageDescription" = "تُقرأ علامات NFC لتحميل وجهة الدفع.";

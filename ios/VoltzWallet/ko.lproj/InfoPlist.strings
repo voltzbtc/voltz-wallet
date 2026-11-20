@@ -1,0 +1,4 @@
+"NSFaceIDUsageDescription" = "Face ID로 Voltz 지갑의 잠금을 해제합니다.";
+"NSCameraUsageDescription" = "결제 QR 코드를 스캔하고 지갑 사진을 찍기 위해 카메라를 사용합니다.";
+"NSPhotoLibraryUsageDescription" = "지갑 이미지를 설정하기 위해 사진을 사용합니다.";
+"NFCReaderUsageDescription" = "결제 대상을 불러오기 위해 NFC 태그를 읽습니다.";

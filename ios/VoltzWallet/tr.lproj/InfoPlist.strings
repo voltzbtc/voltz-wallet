@@ -1,0 +1,4 @@
+"NSFaceIDUsageDescription" = "Voltz cüzdanınızın kilidini açmak için Face ID kullanın.";
+"NSCameraUsageDescription" = "Voltz, ödeme QR kodlarını taramak ve cüzdan fotoğrafı çekmek için kamerayı kullanır.";
+"NSPhotoLibraryUsageDescription" = "Voltz, bir cüzdan görseli ayarlamak için fotoğraflarınızı kullanır.";
+"NFCReaderUsageDescription" = "Voltz, bir ödeme hedefi yüklemek için NFC etiketlerini okur.";

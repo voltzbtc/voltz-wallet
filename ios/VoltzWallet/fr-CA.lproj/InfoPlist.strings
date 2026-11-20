@@ -1,0 +1,4 @@
+"NSFaceIDUsageDescription" = "Utilisez Face ID pour déverrouiller votre portefeuille Voltz.";
+"NSCameraUsageDescription" = "Voltz utilise la caméra pour scanner les QR codes de paiement et prendre la photo d'un portefeuille.";
+"NSPhotoLibraryUsageDescription" = "Voltz utilise vos photos pour définir l’image d’un portefeuille.";
+"NFCReaderUsageDescription" = "Voltz lit les étiquettes NFC pour charger une destination de paiement.";

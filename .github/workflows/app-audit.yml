@@ -1,0 +1,45 @@
+name: app-audit
+
+# Supply-chain and publication gate. The seed's entropy chain (bip39 -> @noble/hashes ->
+# crypto.getRandomValues) is only as trustworthy as the locked deps, so a known high/critical
+# advisory fails the PR instead of surfacing after release.
+#
+# pull_request, never pull_request_target. A pull request from a fork runs its own code here, so it
+# gets a read-only token, no secrets, and a GitHub-hosted runner that is discarded after the job.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# The job only reads the checkout, so the token is given nothing it could write with.
+permissions:
+  contents: read
+
+# A new push to a pull request cancels the run it replaces. A run on main is keyed by its commit, so
+# it is never cancelled or replaced and every commit on main keeps its own result.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  audit:
+    # Reads the locked tree's advisories and the tracked files, and never builds or runs the app.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          # Nothing here pushes, so the token is not left in .git/config for later steps to read.
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      # Fails on any high/critical advisory except the documented build-only allowlist in the script,
+      # so runtime supply-chain issues still block while unpatchable Metro tooling advisories do not.
+      - run: node scripts/audit-gate.mjs
+      # The repository is public, so a recovery phrase, private key, filled API key or personal home
+      # path in any tracked file is published the moment it is pushed.
+      - run: node scripts/check-secrets.mjs

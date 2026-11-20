@@ -1,0 +1,80 @@
+# Resolve react_native_pods.rb with node to allow for hoisting
+require Pod::Executable.execute_command('node', ['-p',
+  'require.resolve(
+    "react-native/scripts/react_native_pods.rb",
+    {paths: [process.argv[1]]},
+  )', __dir__]).strip
+
+platform :ios, min_ios_version_supported
+prepare_react_native_project!
+
+# QR uses VisionCamera's code scanner, not frame processors. Disabling them drops the
+# react-native-worklets-core dependency, which the project does not install, so pod install resolves.
+$VCEnableFrameProcessors = false
+
+# VisionCamera compiles its location tagging by default, which links CoreLocation and references
+# requestWhenInUseAuthorization. App Store processing then demands a location purpose string for a
+# permission the app never asks for. The scanner does not tag photos, so the code stays out.
+$VCEnableLocation = false
+
+# react-native-firebase resolves the Firebase SDK through Swift Package Manager by default, and its
+# products are automatic libraries rather than dynamic ones, so each Firebase pod embeds its own copy
+# and they collide at link time under static linkage. CocoaPods is the other supported route and the
+# one every other native dependency here already takes.
+#
+# The alternative the error offers is switching the whole project to dynamic frameworks, which would
+# change how every pod links, including the Breez binding, for the sake of one dependency.
+$RNFirebaseDisableSPM = true
+
+# React Native ships as a prebuilt binary by default, and in that mode React-Fabric contributes only
+# headers for react/renderer/core: podspec_sources returns the header-only list, and the
+# implementation is expected to come from the prebuilt artifact instead.
+#
+# @callstack/liquid-glass references facebook::react::Sealable::Sealable() from its own object files,
+# and against the prebuilt binary the linker finds no definition for it, so the iOS app does not
+# build at all. Compiling React Native from source (this set to 0) provides the symbol.
+#
+# Set here rather than left to whoever remembers to export it, because a `pod install` without it
+# silently restores a project that cannot link. The cost is a slower first build, since React Native
+# is compiled from source.
+ENV['RCT_USE_PREBUILT_RNCORE'] = '0'
+# Same for the third-party dependencies (boost, folly, glog, fmt). React Native 0.86 defaults this to
+# the prebuilt tarball from Maven, while the committed Podfile.lock is generated with it off, so a
+# `pod install` on a clean machine without it rewrites the lock, swapping the from-source pods for
+# ReactNativeDependencies. Stated here so the lock means the same thing on every machine and the
+# build stays the one known to link.
+ENV['RCT_USE_RN_DEP'] = '0'
+
+linkage = ENV['USE_FRAMEWORKS']
+if linkage != nil
+  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+  use_frameworks! :linkage => linkage.to_sym
+end
+
+target 'VoltzWallet' do
+  config = use_native_modules!
+
+  # FirebaseCoreInternal is Swift and imports GoogleUtilities, which ships no module map, so it
+  # cannot be imported from Swift as a static library without one. Named here rather than turning on
+  # `use_modular_headers!` globally, which would change header handling for every pod in the project
+  # to satisfy one transitive dependency.
+  pod 'GoogleUtilities', :modular_headers => true
+
+  use_react_native!(
+    :path => config[:reactNativePath],
+    # An absolute path to your application root.
+    :app_path => "#{Pod::Config.instance.installation_root}/.."
+  )
+
+  # ios/VoltzWallet/PrivacyInfo.xcprivacy mirrors the App Privacy answers in App Store Connect; the
+  # two change together. react_native_post_install writes that file back from its parsed content, in
+  # its own order and without comments, so this note lives here and the file is kept as it writes it.
+  post_install do |installer|
+    react_native_post_install(
+      installer,
+      config[:reactNativePath],
+      :mac_catalyst_enabled => false,
+      # :ccache_enabled => true
+    )
+  end
+end

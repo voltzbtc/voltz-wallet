@@ -1,0 +1,57 @@
+<manifest xmlns:tools="http://schemas.android.com/tools" xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.NFC" />
+    <!-- Android 13+ requires a runtime grant of this before any notification is shown. Asked when
+         the wallet first has a lightning address to be paid at, not at launch: a permission prompt
+         with no context attached is the one people deny. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- react-native-fs declares WRITE_EXTERNAL_STORAGE, which implies READ, for its shared storage
+         paths. The app reads and writes only its own documents directory, and the image picker
+         copies a picked photo into the app's cache, so neither needs a storage grant. -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
+    <uses-feature android:name="android.hardware.nfc" android:required="false" />
+
+    <application
+      android:name=".MainApplication"
+      android:label="@string/app_name"
+      android:icon="@mipmap/ic_launcher"
+      android:roundIcon="@mipmap/ic_launcher_round"
+      android:allowBackup="false"
+      android:theme="@style/AppTheme"
+      android:usesCleartextTraffic="${usesCleartextTraffic}"
+      android:supportsRtl="true">
+      <!-- Named here, not only created in code: Firebase reads this when a message arrives
+           while the app is not running, which is the case the notification exists for. -->
+      <!-- tools:replace because react-native-firebase declares this same entry with an empty
+           value. Left empty, every push arrives and is never drawn, because Firebase looks up a
+           channel name that names nothing. -->
+      <meta-data
+        android:name="com.google.firebase.messaging.default_notification_channel_id"
+        android:value="@string/default_notification_channel_id"
+        tools:replace="android:value" />
+      <activity
+        android:name=".MainActivity"
+        android:label="@string/app_name"
+        android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+        android:launchMode="singleTask"
+        android:windowSoftInputMode="adjustResize"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+        <!-- A nostr client (Damus/Amethyst) opens a lightning: zap invoice; singleTask delivers it
+             to the running app via onNewIntent, which React Native's Linking already reads. -->
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="lightning" />
+        </intent-filter>
+      </activity>
+    </application>
+</manifest>

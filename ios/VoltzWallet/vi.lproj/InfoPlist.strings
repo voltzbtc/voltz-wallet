@@ -1,0 +1,4 @@
+"NSFaceIDUsageDescription" = "Dùng Face ID để mở khóa ví Voltz của bạn.";
+"NSCameraUsageDescription" = "Voltz dùng máy ảnh để quét mã QR thanh toán và chụp ảnh cho ví.";
+"NSPhotoLibraryUsageDescription" = "Voltz dùng ảnh của bạn để đặt hình cho ví.";
+"NFCReaderUsageDescription" = "Voltz đọc thẻ NFC để tải điểm đến thanh toán.";

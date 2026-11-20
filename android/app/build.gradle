@@ -1,0 +1,188 @@
+apply plugin: "com.android.application"
+apply plugin: "org.jetbrains.kotlin.android"
+apply plugin: "com.facebook.react"
+apply plugin: "com.google.gms.google-services"
+
+/**
+ * This is the configuration block to customize your React Native Android app.
+ * By default you don't need to apply any configuration, just uncomment the lines you need.
+ */
+react {
+    /* Folders */
+    //   The root of your project, i.e. where "package.json" lives. Default is '../..'
+    // root = file("../../")
+    //   The folder where the react-native NPM package is. Default is ../../node_modules/react-native
+    // reactNativeDir = file("../../node_modules/react-native")
+    //   The folder where the react-native Codegen package is. Default is ../../node_modules/@react-native/codegen
+    // codegenDir = file("../../node_modules/@react-native/codegen")
+    //   The cli.js file which is the React Native CLI entrypoint. Default is ../../node_modules/react-native/cli.js
+    // cliFile = file("../../node_modules/react-native/cli.js")
+
+    /* Variants */
+    //   The list of variants to that are debuggable. For those we're going to
+    //   skip the bundling of the JS bundle and the assets. Default is "debug", "debugOptimized".
+    //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
+    // debuggableVariants = ["liteDebug", "liteDebugOptimized", "prodDebug", "prodDebugOptimized"]
+
+    /* Bundling */
+    //   A list containing the node command and its flags. Default is just 'node'.
+    // nodeExecutableAndArgs = ["node"]
+    //
+    //   The command to run when bundling. By default is 'bundle'
+    // bundleCommand = "ram-bundle"
+    //
+    //   The path to the CLI configuration file. Default is empty.
+    // bundleConfig = file(../rn-cli.config.js)
+    //
+    //   The name of the generated asset file containing your JS bundle
+    // bundleAssetName = "MyApplication.android.bundle"
+    //
+    //   The entry file for bundle generation. Default is 'index.android.js' or 'index.js'
+    // entryFile = file("../js/MyApplication.android.js")
+    //
+    //   A list of extra flags to pass to the 'bundle' commands.
+    //   See https://github.com/react-native-community/cli/blob/main/docs/commands.md#bundle
+    // extraPackagerArgs = []
+
+    /* Hermes Commands */
+    //   The hermes compiler command to run. By default it is 'hermesc'
+    // hermesCommand = "$rootDir/my-custom-hermesc/bin/hermesc"
+    //
+    //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
+    // hermesFlags = ["-O", "-output-source-map"]
+
+    /* Autolinking */
+    autolinkLibrariesWithApp()
+}
+
+/**
+ * R8 shrinks, optimizes and obfuscates the release DEX. Google Play requires at least 25% of each
+ * for an app bundle with more than 10 MB of DEX, and without R8 this app carried about 24 MB.
+ * The keep rules the libraries do not ship themselves are in proguard-rules.pro. The images Metro
+ * bundles are kept by the raw/keep.xml React Native's bundle step writes, which names each one.
+ */
+def enableProguardInReleaseBuilds = true
+
+/**
+ * The preferred build flavor of JavaScriptCore (JSC)
+ *
+ * For example, to use the international variant, you can use:
+ * `def jscFlavor = io.github.react-native-community:jsc-android-intl:2026004.+`
+ *
+ * The international variant includes ICU i18n library and necessary data
+ * allowing to use e.g. `Date.toLocaleString` and `String.localeCompare` that
+ * give correct results when using with locales other than en-US. Note that
+ * this variant is about 6MiB larger per architecture than default.
+ */
+def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
+
+/**
+ * Release signing credentials, read from android/keystore.properties (gitignored).
+ *
+ * Release never signs with signingConfigs.debug, the React Native template default. The debug
+ * keystore is tracked in this repo and its key is the stock Android SDK androiddebugkey (alias
+ * 'androiddebugkey', password 'android'), whose private half ships on every machine with an Android
+ * SDK. Anyone can re-sign an APK with it into something Android accepts as an update to the app,
+ * and an update inherits the app identity, so it can read the seed the real app stored in the
+ * Keystore.
+ *
+ * Absent credentials fail the release build (see the guard after the android block) instead of
+ * falling back to debug. A silent fallback is exactly the failure this guards against.
+ */
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+}
+
+android {
+    ndkVersion rootProject.ext.ndkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdk rootProject.ext.compileSdkVersion
+
+    namespace "app.usevoltz"
+    defaultConfig {
+        applicationId "app.usevoltz"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 22
+        versionName "1.0.1"
+    }
+    signingConfigs {
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+        if (keystorePropertiesFile.exists()) {
+            release {
+                storeFile rootProject.file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+        release {
+            signingConfig keystorePropertiesFile.exists() ? signingConfigs.release : null
+            minifyEnabled enableProguardInReleaseBuilds
+            shrinkResources enableProguardInReleaseBuilds
+            // The -optimize variant, since proguard-android.txt carries -dontoptimize and Play
+            // scores DEX optimization on its own.
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+    }
+}
+
+// Without credentials AGP would just emit an unsigned APK, which fails later and somewhere else.
+// Fail here, naming the fix. The check sits on the task graph rather than in a doFirst, because the
+// graph is ready before any task runs, so this aborts in seconds instead of after a full bundle+NDK
+// build, and it still fires for indirect invocations (`gradlew build`) because it inspects the
+// resolved graph.
+gradle.taskGraph.whenReady { graph ->
+    def signsRelease = graph.allTasks.any {
+        it.path == ':app:assembleRelease' || it.path == ':app:bundleRelease'
+    }
+    if (signsRelease && !keystorePropertiesFile.exists()) {
+        throw new GradleException(
+            "Release signing is not configured: android/keystore.properties is missing.\n" +
+            "Create the keystore (once, and back it up -- losing it means losing the ability to\n" +
+            "update the app on Play):\n" +
+            "  keytool -genkeypair -v -keystore android/app/voltz-release.keystore \\\n" +
+            "    -alias voltz -keyalg RSA -keysize 4096 -validity 10000\n" +
+            "Then write android/keystore.properties (gitignored):\n" +
+            "  storeFile=app/voltz-release.keystore\n" +
+            "  storePassword=...\n" +
+            "  keyAlias=voltz\n" +
+            "  keyPassword=...\n" +
+            "See docs/release-signing.md."
+        )
+    }
+}
+
+dependencies {
+    // The version of react-native is set by the React Native Gradle Plugin
+    implementation("com.facebook.react:react-android")
+
+    if (hermesEnabled.toBoolean()) {
+        implementation("com.facebook.react:hermes-android")
+    } else {
+        implementation jscFlavor
+    }
+
+    // Play Billing for the store bridge (android/app/src/main/java/app/usevoltz/store). Exact version,
+    // and the plain artifact rather than billing-ktx, whose POM would raise kotlin-stdlib and pull
+    // kotlinx-coroutines past the app's Kotlin. gradle/verification-metadata.xml pins its checksums.
+    implementation("com.android.billingclient:billing:9.1.0")
+
+    // The QR reader for a picked image (android/app/src/main/java/app/usevoltz/qrimage) compiles against
+    // the ML Kit artifact VisionCamera already puts in the APK. VisionCamera declares it `implementation`,
+    // which stays off this module's compile classpath, and compileOnly adds nothing to what ships. The
+    // version follows VisionCamera's android/build.gradle, and scanGallery.test.tsx holds the two equal.
+    compileOnly("com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1")
+}

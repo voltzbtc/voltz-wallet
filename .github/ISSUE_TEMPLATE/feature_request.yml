@@ -1,0 +1,48 @@
+name: Feature request
+description: Suggest something the app could do.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every change keeps the rules in docs/principles.md. The keys stay on the device, and the app takes custody of nothing.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What you are trying to do, and what gets in the way today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What the app could do about it, from the point of view of someone using it.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other ways around the problem, including how you handle it today.
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Both
+        - iOS
+        - Android
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: The version you use, shown at the foot of the side menu.
+      placeholder: "1.0.0"
+  - type: input
+    id: os
+    attributes:
+      label: OS version
+      placeholder: "Android 16"

@@ -1,0 +1,4 @@
+"NSFaceIDUsageDescription" = "Face IDを使ってVoltzウォレットのロックを解除します。";
+"NSCameraUsageDescription" = "支払い用のQRコードのスキャンと、ウォレットの写真の撮影にカメラを使用します。";
+"NSPhotoLibraryUsageDescription" = "ウォレットの画像を設定するために写真を使用します。";
+"NFCReaderUsageDescription" = "支払い先を読み込むためにNFCタグを読み取ります。";

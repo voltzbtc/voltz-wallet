@@ -1,0 +1,27 @@
+package app.usevoltz.restart
+
+import com.facebook.react.BaseReactPackage
+import com.facebook.react.bridge.NativeModule
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.module.model.ReactModuleInfo
+import com.facebook.react.module.model.ReactModuleInfoProvider
+
+class VoltzRestartPackage : BaseReactPackage() {
+
+  override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? =
+    if (name == VoltzRestartModule.NAME) VoltzRestartModule(reactContext) else null
+
+  override fun getReactModuleInfoProvider() = ReactModuleInfoProvider {
+    mapOf(
+      VoltzRestartModule.NAME to
+        ReactModuleInfo(
+          name = VoltzRestartModule.NAME,
+          className = VoltzRestartModule.NAME,
+          canOverrideExistingModule = false,
+          needsEagerInit = false,
+          isCxxModule = false,
+          isTurboModule = false,
+        ),
+    )
+  }
+}

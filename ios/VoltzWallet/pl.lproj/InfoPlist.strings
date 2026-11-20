@@ -1,0 +1,4 @@
+"NSFaceIDUsageDescription" = "Użyj Face ID, aby odblokować portfel Voltz.";
+"NSCameraUsageDescription" = "Voltz używa aparatu do skanowania kodów QR płatności i robienia zdjęcia portfela.";
+"NSPhotoLibraryUsageDescription" = "Voltz używa Twoich zdjęć, aby ustawić obraz portfela.";
+"NFCReaderUsageDescription" = "Voltz odczytuje tagi NFC, aby wczytać miejsce docelowe płatności.";

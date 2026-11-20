@@ -1,0 +1,4 @@
+"NSFaceIDUsageDescription" = "Gunakan Face ID untuk membuka kunci dompet Voltz Anda.";
+"NSCameraUsageDescription" = "Voltz menggunakan kamera untuk memindai kode QR pembayaran dan mengambil foto dompet.";
+"NSPhotoLibraryUsageDescription" = "Voltz menggunakan foto Anda untuk mengatur gambar dompet.";
+"NFCReaderUsageDescription" = "Voltz membaca tag NFC untuk memuat tujuan pembayaran.";

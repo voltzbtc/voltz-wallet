@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand orange, sampled from src/assets/logo.png. The bolt is cut out of the foreground layer,
+         so this colour shows through it, and changing it here changes the bolt too. -->
+    <color name="ic_launcher_background">#FF7A00</color>
+</resources>

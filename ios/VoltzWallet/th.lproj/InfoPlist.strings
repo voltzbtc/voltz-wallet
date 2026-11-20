@@ -1,0 +1,4 @@
+"NSFaceIDUsageDescription" = "ใช้ Face ID เพื่อปลดล็อกกระเป๋าเงิน Voltz ของคุณ";
+"NSCameraUsageDescription" = "Voltz ใช้กล้องเพื่อสแกน QR code สำหรับการชำระเงินและถ่ายรูปกระเป๋าเงิน";
+"NSPhotoLibraryUsageDescription" = "Voltz ใช้รูปภาพของคุณเพื่อตั้งรูปให้กระเป๋าเงิน";
+"NFCReaderUsageDescription" = "Voltz อ่านแท็ก NFC เพื่อโหลดปลายทางการชำระเงิน";

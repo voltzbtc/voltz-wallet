@@ -1,0 +1,4 @@
+"NSFaceIDUsageDescription" = "اپنا Voltz والٹ کھولنے کے لیے Face ID استعمال کریں۔";
+"NSCameraUsageDescription" = "ادائیگی کے QR کوڈ اسکین کرنے اور والٹ کی تصویر کھینچنے کے لیے کیمرہ استعمال ہوتا ہے۔";
+"NSPhotoLibraryUsageDescription" = "والٹ کی تصویر سیٹ کرنے کے لیے آپ کی تصاویر استعمال ہوتی ہیں۔";
+"NFCReaderUsageDescription" = "ادائیگی کی منزل لوڈ کرنے کے لیے NFC ٹیگز پڑھے جاتے ہیں۔";

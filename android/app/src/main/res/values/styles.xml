@@ -1,0 +1,12 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
+        <!-- OLED-black launch window so the native cold-start screen matches the app's black
+             splash (no white flash before the JS bundle mounts). -->
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+
+</resources>

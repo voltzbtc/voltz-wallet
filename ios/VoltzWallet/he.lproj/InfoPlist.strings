@@ -1,0 +1,4 @@
+"NSFaceIDUsageDescription" = "השתמש ב-Face ID כדי לפתוח את ארנק Voltz שלך.";
+"NSCameraUsageDescription" = "המצלמה משמשת לסריקת קודי QR לתשלום ולצילום תמונה לארנק.";
+"NSPhotoLibraryUsageDescription" = "התמונות שלך משמשות להגדרת תמונה לארנק.";
+"NFCReaderUsageDescription" = "תגי NFC נקראים כדי לטעון יעד לתשלום.";

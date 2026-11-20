@@ -1,0 +1,30 @@
+buildscript {
+    ext {
+        buildToolsVersion = "36.0.0"
+        minSdkVersion = 24
+        compileSdkVersion = 36
+        targetSdkVersion = 36
+        ndkVersion = "27.1.12297006"
+        kotlinVersion = "2.1.20"
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle")
+        classpath("com.facebook.react:react-native-gradle-plugin")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+        // Reads android/app/google-services.json at build time so the Firebase SDK knows which
+        // project this app belongs to. Pinned to an exact version rather than a range, because the
+        // plugin executes during the build and Gradle coordinates are a separate supply chain that
+        // the npm lockfile and its quarantine do not cover.
+        classpath("com.google.gms:google-services:4.5.0")
+    }
+}
+
+apply plugin: "com.facebook.react.rootproject"
+
+// No third-party artifact repository is declared here. A repository serving bare artifacts with no
+// POM and no checksum is only safe while a build task verifies them, so one is never added without
+// that task beside it.

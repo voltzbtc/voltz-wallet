@@ -1,0 +1,107 @@
+{
+  "identifier": "5F1B2C3D",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "6741000001",
+      "localizations": [
+        {
+          "description": "Name credit, 12 or more characters",
+          "displayName": "Name credit, 12 or more characters",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "name_long",
+      "referenceName": "name_long",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "9.99",
+      "familyShareable": false,
+      "internalID": "6741000002",
+      "localizations": [
+        {
+          "description": "Name credit, standard",
+          "displayName": "Name credit, standard",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "name_standard",
+      "referenceName": "name_standard",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "14.99",
+      "familyShareable": false,
+      "internalID": "6741000003",
+      "localizations": [
+        {
+          "description": "Name credit, 5 characters",
+          "displayName": "Name credit, 5 characters",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "name_five",
+      "referenceName": "name_five",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "39.99",
+      "familyShareable": false,
+      "internalID": "6741000004",
+      "localizations": [
+        {
+          "description": "Name credit, 4 characters",
+          "displayName": "Name credit, 4 characters",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "name_four",
+      "referenceName": "name_four",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "99.99",
+      "familyShareable": false,
+      "internalID": "6741000005",
+      "localizations": [
+        {
+          "description": "Name credit, 3 or fewer characters",
+          "displayName": "Name credit, 3 or fewer characters",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "name_short",
+      "referenceName": "name_short",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "99.99",
+      "familyShareable": false,
+      "internalID": "6741000006",
+      "localizations": [
+        {
+          "description": "One year of a custom domain",
+          "displayName": "One year of a custom domain",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "domain_year",
+      "referenceName": "domain_year",
+      "type": "Consumable"
+    }
+  ],
+  "settings": {
+    "_failTransactionsEnabled": false,
+    "_locale": "en_US",
+    "_storefront": "USA",
+    "_storeKitErrors": []
+  },
+  "subscriptionGroups": [],
+  "version": {
+    "major": 2,
+    "minor": 0
+  }
+}

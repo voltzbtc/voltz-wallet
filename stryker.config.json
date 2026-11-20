@@ -1,0 +1,73 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "_comment": [
+    "Mutation testing breaks the code on purpose and checks whether a test goes red.",
+    "",
+    "A passing suite cannot see a test named for a behaviour whose body does not exercise it, a",
+    "double that cannot represent the failing state, or a guard nobody has watched fail. A green",
+    "count says the tests ran, not that they would notice.",
+    "",
+    "Scoped to src/wallet, the logic that decides money (amounts, purchases, addresses, the",
+    "domain lifecycle). Screens are driven by their own flow tests and mutate poorly, since most",
+    "changes there produce a render nobody asserted on rather than a wrong answer.",
+    "",
+    "A threshold belongs at what the suite reaches, not at an aspiration, because a threshold",
+    "nobody can meet is ignored. break stays null, so the score is reported and never fails a run.",
+    "",
+    "ignorePatterns keeps the sandbox to what the tests read. Copying the repository whole fails",
+    "outright on the symlinks inside ios/Pods, and copying android and ios build output costs",
+    "minutes per run for directories no test opens.",
+    "",
+    "enableFindRelatedTests runs each mutant against only the suites that import the file it",
+    "touched. Without it every mutant reruns the whole suite, which takes hours for a single file.",
+    "The screen flow tests are excluded from the run instead, since they time out under the sandbox",
+    "and would not judge a wrong amount anyway."
+  ],
+  "packageManager": "npm",
+  "testRunner": "jest",
+  "jest": {
+    "projectType": "custom",
+    "configFile": "jest.config.js",
+    "enableFindRelatedTests": true,
+    "config": {
+      "testPathIgnorePatterns": [
+        "Screen\\.test",
+        "Sheet\\.test",
+        "Card\\.test",
+        "Timeline\\.test",
+        "Renew\\.test",
+        "home\\.test",
+        "Spark\\.test\\.tsx",
+        "Recovery\\.test"
+      ]
+    }
+  },
+  "mutate": [
+    "src/wallet/**/*.ts",
+    "!src/wallet/**/*.d.ts"
+  ],
+  "reporters": [
+    "html",
+    "clear-text",
+    "progress"
+  ],
+  "htmlReporter": {
+    "fileName": "reports/mutation/index.html"
+  },
+  "coverageAnalysis": "perTest",
+  "timeoutMS": 30000,
+  "concurrency": 4,
+  "thresholds": {
+    "high": 80,
+    "low": 60,
+    "break": null
+  },
+  "tempDirName": ".stryker-tmp",
+  "ignorePatterns": [
+    "ios/**",
+    "android/**",
+    "reports/**",
+    "**/*.apk",
+    "**/*.app"
+  ]
+}

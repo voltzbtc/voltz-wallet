@@ -1,0 +1,4 @@
+"NSFaceIDUsageDescription" = "अपने Voltz वॉलेट को अनलॉक करने के लिए Face ID का उपयोग करें।";
+"NSCameraUsageDescription" = "भुगतान के QR कोड स्कैन करने और वॉलेट की फ़ोटो लेने के लिए कैमरे का उपयोग होता है।";
+"NSPhotoLibraryUsageDescription" = "वॉलेट की तस्वीर सेट करने के लिए आपकी फ़ोटो का उपयोग होता है।";
+"NFCReaderUsageDescription" = "भुगतान का गंतव्य लोड करने के लिए NFC टैग पढ़े जाते हैं।";

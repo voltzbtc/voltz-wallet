@@ -1,0 +1,73 @@
+name: Bug report
+description: Something in the app does not work as it should.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Security bugs never go in a public issue. Report them through the Security tab, as SECURITY.md describes.
+
+        Never paste a recovery phrase, passphrase, PIN or private key, and keep addresses, amounts and transaction ids out of text and screenshots unless the bug needs them.
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Shown at the foot of the side menu, or the commit you built from.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - iOS
+        - Android
+        - Both
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS version and device
+      placeholder: "iOS 26.1, iPhone 15"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: From opening the app to the problem, one step per line.
+      placeholder: |
+        1. Open Send
+        2. Paste a lightning invoice
+        3. Tap Confirm send
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What the app did instead, with the exact message it showed, if any.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Screenshots and other context
+      description: Screenshots, how often it happens, and whether it started after an update.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: This report contains no recovery phrase, passphrase, PIN or private key.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true

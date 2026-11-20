@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/voltzbtc/voltz-wallet/security/advisories/new
+    about: Report security bugs privately through the Security tab, never in a public issue. See SECURITY.md.
+  - name: Help with using the app
+    url: https://www.usevoltz.app/support/
+    about: Questions about the app, your lightning address or a payment go to Voltz Wallet support.

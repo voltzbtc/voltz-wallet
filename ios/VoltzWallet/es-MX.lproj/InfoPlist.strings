@@ -1,0 +1,4 @@
+"NSFaceIDUsageDescription" = "Usa Face ID para desbloquear tu billetera Voltz.";
+"NSCameraUsageDescription" = "Voltz usa la cámara para escanear códigos QR de pago y para tomar una foto de una cartera.";
+"NSPhotoLibraryUsageDescription" = "Voltz usa tus fotos para poner una imagen a una billetera.";
+"NFCReaderUsageDescription" = "Voltz lee etiquetas NFC para cargar un destino de pago.";

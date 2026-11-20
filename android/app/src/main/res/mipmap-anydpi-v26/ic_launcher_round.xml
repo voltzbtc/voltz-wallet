@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Adaptive icon, required from Android 8 on. Without it the launcher shrinks the legacy PNG and
+     centres it in a white circle. The two layers exist because the system crops the icon to
+     whatever shape the launcher picks, and only the background may be cropped. monochrome reuses
+     the same layer, since Android 13 themed icons read only its alpha. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+    <monochrome android:drawable="@mipmap/ic_launcher_foreground" />
+</adaptive-icon>

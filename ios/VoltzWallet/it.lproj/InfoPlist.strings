@@ -1,0 +1,4 @@
+"NSFaceIDUsageDescription" = "Usa Face ID per sbloccare il tuo wallet Voltz.";
+"NSCameraUsageDescription" = "Voltz usa la fotocamera per scansionare i codici QR di pagamento e scattare la foto di un wallet.";
+"NSPhotoLibraryUsageDescription" = "Voltz usa le tue foto per impostare l’immagine di un wallet.";
+"NFCReaderUsageDescription" = "Voltz legge i tag NFC per caricare una destinazione di pagamento.";
