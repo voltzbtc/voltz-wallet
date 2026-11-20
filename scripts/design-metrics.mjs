@@ -12,6 +12,10 @@ import { join, relative, resolve } from 'node:path'
 
 const ROOT = new URL('..', import.meta.url).pathname
 
+// Names come from source identifiers, where only `$` is special to a RegExp, but every metacharacter
+// is escaped so the pattern stays literal whatever text reaches it.
+const escapeRegExp = text => text.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')
+
 // App.tsx lives at the root, outside src/, so it is named explicitly rather than found by walking
 // src/. A walk that misses it reports a confident zero for the app's entry point.
 function sourceFiles() {
@@ -785,7 +789,7 @@ function figureSites(f) {
       [
         ...src
           .slice(from, to)
-          .matchAll(new RegExp(`(?<![\\w$.])${name.replace(/\$/g, '\\$')}\\b${whole ? '(?!\\s*\\??\\.)(?!\\s*\\[)' : ''}`, 'g')),
+          .matchAll(new RegExp(`(?<![\\w$.])${escapeRegExp(name)}\\b${whole ? '(?!\\s*\\??\\.)(?!\\s*\\[)' : ''}`, 'g')),
       ].some(m => !inProse(from + m.index)),
     )
   for (let grew = true; grew; ) {

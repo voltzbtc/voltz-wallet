@@ -235,8 +235,13 @@ function bridgedProvider(inner: InstanceType<ProviderModule['PasskeyProvider']>,
 
 // Unique per registration, because Apple's Passwords treats two passkeys of one domain and user.name
 // as one. Never a person's name: the system shows it in its picker and nothing here needs one.
+// The name holds no secret, and its tail still comes from the secure source the seed uses, so the
+// file has a single kind of randomness to audit.
 function uniqueUserName(): string {
-  return `voltz-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+  const bytes = new Uint8Array(5)
+  globalThis.crypto.getRandomValues(bytes)
+  const tail = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
+  return `voltz-${Date.now().toString(36)}-${tail}`
 }
 
 // A client per ceremony, since the provider takes the user name when it is built.
