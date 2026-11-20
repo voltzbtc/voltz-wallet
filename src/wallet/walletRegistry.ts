@@ -10,9 +10,14 @@ export type Registry = { wallets: WalletEntry[]; active: string | null }
 const FILE = `${RNFS.DocumentDirectoryPath}/wallets.json`
 const EMPTY: Registry = { wallets: [], active: null }
 
-// Time-based, since a fingerprint is not stable per wallet (a BIP39 passphrase derives another).
+// Time-based, since a fingerprint is not stable per wallet (a BIP39 passphrase derives another). The
+// id holds no secret, and its tail still comes from the secure source the seed uses, so the wallet
+// code has a single kind of randomness to audit.
 export function newWalletId(): string {
-  return `w_${Date.now().toString(36)}${Math.floor(Math.random() * 1e6).toString(36)}`
+  const bytes = new Uint8Array(4)
+  globalThis.crypto.getRandomValues(bytes)
+  const tail = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
+  return `w_${Date.now().toString(36)}${tail}`
 }
 
 export function registerWallet(reg: Registry, id: string, fingerprint: string): Registry {

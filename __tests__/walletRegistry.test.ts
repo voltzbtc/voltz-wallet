@@ -3,12 +3,34 @@ import * as Keychain from 'react-native-keychain'
 import {
   ensureRegistered,
   loadRegistry,
+  newWalletId,
   registerWallet,
   removeWalletEntry,
   reorder,
   reorderWallets,
   type WalletEntry,
 } from '../src/wallet/walletRegistry'
+
+describe('newWalletId', () => {
+  it('draws its tail from the secure source, never Math.random', () => {
+    const secure = jest.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation(array => {
+      ;(array as Uint8Array).set([0xde, 0xad, 0xbe, 0xef])
+      return array
+    })
+    const weak = jest.spyOn(Math, 'random')
+    try {
+      expect(newWalletId()).toMatch(/^w_[a-z0-9]+deadbeef$/)
+      expect(weak).not.toHaveBeenCalled()
+    } finally {
+      secure.mockRestore()
+      weak.mockRestore()
+    }
+  })
+
+  it('gives two wallets made in the same millisecond different ids', () => {
+    expect(newWalletId()).not.toBe(newWalletId())
+  })
+})
 
 describe('registerWallet', () => {
   it('adds the first wallet and makes it active', () => {
