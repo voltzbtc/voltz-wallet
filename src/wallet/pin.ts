@@ -105,7 +105,18 @@ export type PinEntry = { ok: true } | { ok: false; waitMs: number }
 
 // The keypad's check. Refuses without comparing while a wait runs. Counts the attempt before it
 // compares, so a process ended between the two has still counted it, and clears the count on a match.
-export async function enterPin(pin: string): Promise<PinEntry> {
+// Checks run one at a time, each reading the wait and the count after the one before has written
+// them: two run together would both read the same count and both be compared, and every PIN typed
+// while one check runs would get past the wait it is about to start.
+let checks: Promise<unknown> = Promise.resolve()
+
+export function enterPin(pin: string): Promise<PinEntry> {
+  const turn = checks.then(() => checkPin(pin))
+  checks = turn.catch(() => undefined)
+  return turn
+}
+
+async function checkPin(pin: string): Promise<PinEntry> {
   const left = await pinWaitLeft()
   if (left > 0) {
     return { ok: false, waitMs: left }

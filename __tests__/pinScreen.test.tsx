@@ -549,6 +549,31 @@ describe('the wait after too many wrong PINs', () => {
     }
   })
 
+  it('takes no digit while a typed PIN is being checked', async () => {
+    let answer!: (entry: { ok: false; waitMs: number }) => void
+    jest.mocked(enterPin).mockImplementationOnce(() => new Promise(resolve => (answer = resolve)))
+    const tree = await render(lock())
+    await typeSix(tree)
+    // Backspace and a digit would make six again and start a second check alongside the first.
+    for (let i = 0; i < 3; i++) {
+      const backspace = tree.root.findAll(
+        n => n.props.accessibilityLabel === i18n.t('common.backspace') && typeof n.props.onPress === 'function',
+      )[0]
+      if (backspace) {
+        await ReactTestRenderer.act(async () => {
+          backspace.props.onPress()
+        })
+      }
+      await pressDigit(tree, '7')
+    }
+    expect(enterPin).toHaveBeenCalledTimes(1)
+    await ReactTestRenderer.act(async () => {
+      answer({ ok: false, waitMs: 0 })
+    })
+    await typeSix(tree)
+    expect(enterPin).toHaveBeenCalledTimes(2)
+  })
+
   it('opens on a wait still running when the keypad comes up', async () => {
     jest.mocked(pinWaitLeft).mockResolvedValue(60_000)
     const tree = await render(lock())

@@ -150,6 +150,8 @@ export function PinScreen(props: Props): React.JSX.Element {
   // While too many wrong PINs wait out their time: when the keypad takes a PIN again, on the steady
   // clock pinWaitLeft uses, and the moment last drawn, which moves once a second.
   const [waitUntil, setWaitUntil] = useState<number | null>(null)
+  // While a typed PIN is being checked.
+  const checking = useRef(false)
   const [, setTick] = useState(0)
   const waiting = waitUntil !== null
 
@@ -252,7 +254,13 @@ export function PinScreen(props: Props): React.JSX.Element {
       return
     }
 
-    const entry = await enterPin(pin)
+    checking.current = true
+    let entry: Awaited<ReturnType<typeof enterPin>>
+    try {
+      entry = await enterPin(pin)
+    } finally {
+      checking.current = false
+    }
     if (entry.ok) {
       props.onDone(pin)
       return
@@ -323,8 +331,9 @@ export function PinScreen(props: Props): React.JSX.Element {
   }, [])
 
   function press(key: string) {
-    // A wait takes no digit, so nothing typed during it is checked when it ends.
-    if (filling.current || waiting) {
+    // A wait takes no digit, so nothing typed during it is checked when it ends, and neither does a
+    // check still running, whose answer may start one.
+    if (filling.current || waiting || checking.current) {
       return
     }
     if (key === 'del') {

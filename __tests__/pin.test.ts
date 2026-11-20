@@ -134,6 +134,27 @@ describe('typing a PIN on the keypad', () => {
     }
   }
 
+  // Each Keystore read and write takes its own time on a device, and a person types faster than that.
+  it('checks PINs typed together one at a time, so the fifth wrong one stops the next', async () => {
+    const slow = jest.mocked(Keychain.getGenericPassword).getMockImplementation()!
+    jest.mocked(Keychain.getGenericPassword).mockImplementation(
+      options => new Promise(resolve => setTimeout(() => resolve(slow(options)), 1)),
+    )
+    await wrongTimes(4)
+    const compared = () =>
+      jest.mocked(Keychain.getGenericPassword).mock.calls.filter(([options]) => options?.service === PIN).length
+    const before = compared()
+    const answers = await Promise.all(['000000', '000001', '000002', '123456'].map(pin => enterPin(pin)))
+    expect(answers).toEqual([
+      { ok: false, waitMs: 30_000 },
+      { ok: false, waitMs: 30_000 },
+      { ok: false, waitMs: 30_000 },
+      { ok: false, waitMs: 30_000 },
+    ])
+    expect(compared() - before).toBe(1)
+    expect(keychain.get(FAILURES)).toBe('5')
+  })
+
   it('opens with the right PIN and clears the count', async () => {
     await wrongTimes(3)
     expect(keychain.get(FAILURES)).toBe('3')
