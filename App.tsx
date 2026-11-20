@@ -495,7 +495,7 @@ function App(): React.JSX.Element {
       return
     }
     if (owing && !pin) {
-      // A biometric unlock: the words wait for a typed PIN on a fresh keypad that offers no biometric.
+      // After a biometric unlock the words wait for a typed PIN, on a fresh keypad with no biometric.
       lockGen.current += 1
       setLockSeq(lockGen.current)
       setTypedOnly(true)
