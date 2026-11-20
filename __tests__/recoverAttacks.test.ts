@@ -311,6 +311,7 @@ describe('ATTACK: a wallet that already answers on another address', () => {
     } as never)
     const { deps, calls } = harness({ pending: ok({ charges: [NAME_CHARGE] }) })
     await recoverPurchases(deps)
-    expect(calls).toContain(`https://${SOLD_ON}/api/quote/confirm`)
+    // Confirmed at the build domain, naming the domain it was sold on in the body.
+    expect(calls).toContain(`https://${BUILD}/api/quote/confirm`)
   })
 })
