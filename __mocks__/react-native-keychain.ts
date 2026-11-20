@@ -12,6 +12,7 @@ export const ACCESSIBLE = {
 
 export const ACCESS_CONTROL = {
   BIOMETRY_ANY: 'BiometryAny',
+  BIOMETRY_CURRENT_SET: 'BiometryCurrentSet',
   DEVICE_PASSCODE: 'DevicePasscode',
 } as const
 

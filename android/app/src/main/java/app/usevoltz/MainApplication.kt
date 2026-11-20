@@ -3,6 +3,7 @@ package app.usevoltz
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import app.usevoltz.biometric.NativeVoltzBiometricPackage
 import app.usevoltz.durable.NativeVoltzDurablePackage
 import app.usevoltz.privacy.NativeVoltzPrivacyPackage
 import app.usevoltz.qrimage.NativeVoltzQrImagePackage
@@ -27,6 +28,7 @@ class MainApplication : Application(), ReactApplication {
           add(NativeVoltzQrImagePackage())
           add(NativeVoltzPrivacyPackage())
           add(NativeVoltzDurablePackage())
+          add(NativeVoltzBiometricPackage())
         },
     )
   }

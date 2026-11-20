@@ -96,8 +96,10 @@ export function RecoveryPhraseScreen(): React.JSX.Element {
     }
   }
 
+  // The typed PIN, never a biometric: the words are the wallet, and the app's PIN is what proves the
+  // person knows more than the phone's passcode, whatever a biometric can be made to release.
   if (state === 'gate') {
-    return <PinScreen mode="enter" onDone={reveal} />
+    return <PinScreen mode="enter" biometrics={false} onDone={reveal} />
   }
 
   if (state === 'failed') {
