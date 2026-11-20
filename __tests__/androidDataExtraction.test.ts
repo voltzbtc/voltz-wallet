@@ -26,7 +26,9 @@ test('the manifest keeps backup off and names the rules', () => {
 })
 
 test.each(['cloud-backup', 'device-transfer'])('%s excludes every domain and includes nothing', section => {
-  const rules = read('android/app/src/main/res/xml/data_extraction_rules.xml').replace(/<!--[\s\S]*?-->/g, '')
+  // The header comment names no tag, so each section is read from the file as it is.
+  const rules = read('android/app/src/main/res/xml/data_extraction_rules.xml')
+  expect(rules.split(`<${section}>`)).toHaveLength(2)
   const body = new RegExp(`<${section}>([\\s\\S]*?)</${section}>`).exec(rules)?.[1]
   expect(body).toBeDefined()
   const excluded = [...body!.matchAll(/<exclude domain="([a-z_]+)" path="\." \/>/g)].map(m => m[1])
