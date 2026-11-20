@@ -762,7 +762,15 @@ async function connectInTurn(
   initSdkLogging()
   const lnurlDomain = await untilCut(turn, domainFor(walletId))
   const storageDir = SPARK_STORAGE_DIR
-  await untilCut(turn, RNFS.mkdir(storageDir).catch(() => undefined))
+  // Out of iCloud and computer backups before the SDK writes in it, since it holds the payments, the
+  // contacts and the address in the clear and the network gives them all back. The flag is set on every
+  // connect, so a folder an earlier version made is taken out too. Android backs up nothing.
+  await untilCut(
+    turn,
+    RNFS.mkdir(storageDir, { NSURLIsExcludedFromBackupKey: true }).catch((err: unknown) => {
+      console.warn(`SDK folder not kept out of backups: ${(err as Error)?.message ?? String(err)}`)
+    }),
+  )
   // The optional BIP39 passphrase selects a different derived wallet, not just a different unlock.
   const passphrase = await untilCut(turn, loadPassphraseFor(walletId))
   // Asked again after the reads and before the live connection is dropped, so a request the person
