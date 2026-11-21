@@ -30,7 +30,8 @@ export async function hasPin(): Promise<boolean> {
 // starts with no wrong attempts behind it.
 export async function deletePin(): Promise<void> {
   await Keychain.resetGenericPassword({ service: SERVICE })
-  await clearPinFailures()
+  // Not behind the check queue: an erase must not wait on a check whose read may never answer.
+  await resetFailures()
 }
 
 // A comparison alone, for a PIN the app holds (the copy biometric unlock releases). A PIN typed on the
@@ -96,14 +97,11 @@ async function writeFailures(failures: number): Promise<void> {
 async function resetFailures(): Promise<void> {
   held = 0
   waitEnds = null
-  try {
-    await Keychain.resetGenericPassword({ service: FAILURES })
-  } catch (err) {
-    console.warn(`pin failures not cleared: ${reason(err)}`)
-  }
+  await Keychain.resetGenericPassword({ service: FAILURES })
 }
 
-// Waits for any check under way, which would otherwise write its count over this clear.
+// For an unlock that did not go through the keypad. Waits for any check under way, which would
+// otherwise write its count over this clear.
 export function clearPinFailures(): Promise<void> {
   return inTurn(resetFailures)
 }
@@ -157,7 +155,8 @@ async function checkPin(pin: string): Promise<PinEntry> {
   const failures = (await readFailures()) + 1
   await writeFailures(failures)
   if (await verifyPin(pin)) {
-    await resetFailures()
+    // The process holds the cleared count whether or not the Keychain takes it.
+    await resetFailures().catch((err: unknown) => console.warn(`pin failures not cleared: ${reason(err)}`))
     return { ok: true }
   }
   const wait = waitAfter(failures)
