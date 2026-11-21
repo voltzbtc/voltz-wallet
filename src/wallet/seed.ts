@@ -179,6 +179,13 @@ export async function listSeedIds(): Promise<string[]> {
 
 // Optional BIP39 passphrase in its own Keychain entry. Storing it rather than prompting at each
 // unlock keeps cold-start auto-connect working, at the cost of the local-extraction case.
+//
+// Kept and handed to the SDK exactly as typed, since both derivations apply BIP39's NFKD themselves,
+// so a composed and a decomposed accent open the same wallet. The SDK's Seed::to_bytes calls bip39's
+// Mnemonic::to_seed (breez/spark-sdk 0.28.0, crates/breez-sdk/core/src/models/mod.rs:89), which in
+// bip39 2.2.2 normalizes to NFKD and exists only with the crate's unicode-normalization feature
+// (src/lib.rs:561), and bip39 in JS does the same for the fingerprint. An SDK upgrade that changes
+// either derives another wallet from the same words.
 const PASSPHRASE_SERVICE = 'com.voltz.wallet.passphrase'
 
 function passphraseServiceFor(id: string): string {
