@@ -4,9 +4,10 @@ The wallet itself needs no server run by the project. Keys, balances, sending an
 Spark address, a Bitcoin address or a Lightning invoice all go through the Breez SDK Spark running
 on the device. The Spark network and the SDK have a trust model of their own, documented upstream at
 <https://sdk-doc-spark.breez.technology/>. This page states what the optional server side that
-serves lightning addresses can and cannot do, and closes with three parts that sit outside it,
-namely passkey wallets, the update notice and the emergency exit relay. Each of those three names
-at its start the release it applies from.
+serves lightning addresses can and cannot do, and closes with the parts that sit outside it,
+namely passkey wallets, the update notice, the emergency exit relay, payment notices, the stable
+balance rewards, the transport to the gateway and iOS backups. Each of those names at its start the
+release it applies from.
 
 ## When there is a server side at all
 
@@ -219,3 +220,94 @@ signed transactions, which become public on entering the network. Neither receiv
 neither can change or spend anything, because the transactions arrive signed. A host can refuse or
 delay, and the app then tries the other. If both refuse, the screen shows the pair of transactions
 to copy and take to a node that accepts packages through `submitpackage`.
+
+## Payment notices
+
+Applies from release 1.0.1.
+
+With notifications on, the gateway sends each notice as a Firebase Cloud Messaging message with a
+notification block, and FCM reaches an iPhone through the Apple Push Notification service. The block
+carries the title and body in the wording the device registered, with the amount in sats filled in
+for a payment received at the lightning address, a Lightning payment received, sent or not
+completed, and an on-chain deposit, and with the domain filled in for the reminders about a domain
+of the wallet's own and the notice that it is serving. Google, and Apple for an iPhone, therefore see
+that text, the amount and the domain, the time, and the device's push token. A payment notice carries
+only that title and body, and a notice about a domain also carries its host, for the app to route the
+tap; none carries a key, an invoice, an address or a transaction id.
+
+While the app is away the system draws the notice itself and no app code runs, so what a locked
+screen shows of it follows the system: on iOS the person's Show Previews setting, and on Android the
+lock screen setting together with the app's notification channel. The channel marks its notices
+private, so a locked Android screen shows that a notice came from the app and hides its text. Builds
+up to 1.0.3 set no visibility on the channel, so there the lock screen setting alone decides.
+
+## Stable balance rewards
+
+Applies from release 1.0.1.
+
+Opening the stable balance screen reads the wallet's USDB rewards from Flashnet
+(`src/wallet/rewards.ts`), with two GET requests and no body: `/v1/rewards/<key>` and
+`/v1/rewards/<key>/payouts?limit=5` on `rewards.flashnet.xyz`, where `<key>` is the wallet's Spark
+identity public key. Try again on the screen sends both again. Flashnet learns that key, the IP
+address of the device and the time, so it can tie the key to that address. The requests carry
+nothing that signs or spends, and the project receives nothing of them.
+
+## Transport to the gateway
+
+Applies from release 1.0.1.
+
+The app reaches the gateway over HTTPS through the platform's own network stack and pins no
+certificate or key, so any certificate for the domain from an authority the device trusts is
+accepted. A release build on Android trusts only the system's authorities: the app declares no
+network security configuration, and at its target API level the default leaves out authorities a
+user installs; it also allows no cleartext. iOS trusts, besides the system's authorities, a root the
+person installs as a profile and turns on under Certificate Trust Settings.
+
+Reading these requests in transit therefore takes a certificate for the domain issued in error, or
+a root the person added to their own iPhone. Such a reader sees what the app sends to the gateway,
+the payment webhook's secret in a registration for notifications included, which would let it have
+the gateway send this device notices of payments that did not happen. The gateway holds no key and
+no funds, so nothing read this way signs or spends, and the balance and the history the app shows
+come from the SDK, never from a notice. On these grounds the gateway's requests go unpinned.
+
+## iOS backups
+
+Applies from release 1.0.3.
+
+iOS puts the files of an app's Documents folder into iCloud backups and into computer backups. The
+SDK's own folder, `Documents/spark`, which holds the payments, the contacts and the lightning
+address in the clear, is flagged out of backups at every connect (`connectInTurn` in
+`src/wallet/spark.ts`), and the network gives its content back. The seeds, the passphrases and the
+PIN are in the Keychain, stored `WHEN_UNLOCKED_THIS_DEVICE_ONLY`, which Apple says does not move to
+another device.
+
+Every other file the app keeps in Documents still crosses, and none holds a key that can sign or
+spend. They are the following, grouped by what they hold.
+
+- **Which wallets exist.** `wallets.json` (wallet ids, fingerprints and the active one),
+  `passkey-wallets.json` (which wallets came from a passkey, with what the authenticator reported),
+  `wallet-meta.json` and the `wallet-avatars` folder (the name and photo given to each wallet), and
+  `backup-marks.json` (wallets whose words are not confirmed yet).
+- **Payments.** `pending-sends-<wallet>.json` (the ids of sends in flight), `conversion-notes.json`
+  (what the SDK quoted for each conversion), `refund-fees.json` (the highest fee signed for each
+  refunded deposit, by its output) and `exit-plan-<wallet>.json` (an emergency exit's plan, with its
+  transactions and the fee address).
+- **Addresses and domains.** `lnurl-domain.json` (the domain of each wallet's address),
+  `ln-address-last.json` (each wallet's remembered address), `released-lines.json` (answers about a
+  name or a year still to be shown, with the address or host they name), `domain-tier.json` and
+  `domain-mine.json` (the last answer about a wallet's own domain, and when it was asked),
+  `domain-wallet-labels.json` (the names given to wallets let into a domain, by key) and
+  `domain-purchase.json` (a domain purchase under way).
+- **Purchases.** `purchases.json` and the older `purchase-<kind>.json` (the proof of a name or domain
+  bought in sats, with its reference and amount), `purchase-asked.json` (when each wallet last asked
+  what it is owed) and `store-orders.json` (orders opened with the App Store or Google Play).
+- **Notices and deletion.** `push-registration.json` (the push token, the wallet's identity key, the
+  domain and the wording last registered), `notification-asked.json`, and `deletion.json`,
+  `deletion-read.json` and `deletion-check.json` (the marks of wallets whose data was deleted at
+  Voltz, and when their status was read).
+- **Preferences.** `settings.json` (currency, language, explorer, the dollar wallet and similar
+  choices), `token-prefs.json` (the tokens each wallet added or hid), `biometric-offer.json` and
+  `price-cache.json` (the bitcoin price series).
+
+A file written through `src/wallet/durableFile.ts` can also leave a `.tmp` copy beside it, and one
+that could not be read is set aside as `.unreadable`; both cross with the rest.
