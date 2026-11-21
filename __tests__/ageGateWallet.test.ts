@@ -75,7 +75,7 @@ describe.each([
   })
 })
 
-// I1: a wallet already on the device is never refused for age.
+// A wallet already on the device is never refused for age.
 describe('a wallet already here', () => {
   test('the first run writing the same wallet again goes on for a minor', async () => {
     const id = await addFirstWallet(WORDS, undefined, 'typed')

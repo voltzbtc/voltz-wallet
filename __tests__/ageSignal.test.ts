@@ -63,7 +63,7 @@ describe('verdictOf', () => {
 })
 
 describe('asking', () => {
-  // I2: only a person the store marks as regulated is asked, so nobody else sees a prompt.
+  // Only a person the store marks as regulated is asked, so nobody else sees a prompt.
   test('a person the store does not mark as regulated is asked nothing further', async () => {
     store.regulated(false)
     store.answers({ status: 'shared', lower: 13, upper: 15 })
@@ -111,7 +111,7 @@ describe('asking', () => {
     expect(ageVerdictNow()).toBe('minor')
   })
 
-  // I4: a failed, absent or unsupported answer never blocks.
+  // A failed, absent or unsupported answer never blocks.
   test('a regulated check that fails asks nothing further and blocks nothing', async () => {
     store.regulatedFails('play-3')
     expect(await askAgeSignal()).toBe('unknown')
@@ -178,7 +178,7 @@ describe('asking', () => {
   })
 })
 
-// I3: the signal never leaves the device, is never logged and is never kept past the launch.
+// The signal never leaves the device, is never logged and is never kept past the launch.
 describe('where the signal goes', () => {
   const READERS = ['src/wallet/ageSignal.ts', 'src/hooks/useMinorSignal.ts']
   const NATIVE = [
@@ -229,7 +229,7 @@ describe('where the signal goes', () => {
     )
   })
 
-  // I1: nothing on the way to a wallet that exists reads the signal, so Send, Receive, the words and
+  // Nothing on the way to a wallet that exists reads the signal, so Send, Receive, the words and
   // the emergency exit work whatever it says.
   test('the screens of a wallet that exists never read it', () => {
     for (const file of [

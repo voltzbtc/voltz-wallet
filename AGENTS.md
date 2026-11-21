@@ -91,6 +91,7 @@ src/
                         the secret kept in the Keychain per wallet, the removal marker kept per key
                         until the provider confirms, and the pass each connect runs
     deviceForget.ts     the one sender of the forgets the gateway is still owed
+    ageSignal.ts        the stores' age signal, asked once per launch, kept in memory as a verdict
   hooks/  navigation/  components/  screens/
   assets/               bundled flags, asset and network marks, logos
 __tests__/              the suite
@@ -390,6 +391,11 @@ Each of these breaks something without breaking the suite.
   waits for Home's first frame and `@noble/curves` loads on first use through Metro's `inlineRequires`,
   because the signature check is pure JS on the JS thread. A release moves `APP_VERSION` together with
   `versionName` and `MARKETING_VERSION`, and `__tests__/appVersion.test.ts` holds the three.
+- **The age signal stops a new wallet and a purchase, never a wallet that exists.** A minor's verdict
+  from `src/wallet/ageSignal.ts` refuses `addFirstWallet`, `addAndActivateWallet` and `buyInStore`,
+  and nothing else reads it, which `__tests__/ageSignal.test.ts` holds; any failure or absent answer
+  counts as nothing known. The verdict lives in memory for the launch and is never logged, written or
+  sent. See [docs/age-signal.md](docs/age-signal.md).
 - **The store link is a store app's own scheme, never https.** An https link would add
   `apps.apple.com` and `play.google.com` to the hosts the app calls. A simulator has no App Store, so
   there the tap does nothing, and it needs a real device to prove.
@@ -433,6 +439,7 @@ Checks to run before a pull request are in [CONTRIBUTING.md](CONTRIBUTING.md).
 - [docs/data-deletion.md](docs/data-deletion.md), deleting a wallet's data at Voltz and the mark that holds it
 - [docs/emergency-exit.md](docs/emergency-exit.md), moving funds on-chain without the operators
 - [docs/app-lock.md](docs/app-lock.md), the PIN asked again after time away, and the native cover before it
+- [docs/age-signal.md](docs/age-signal.md), the stores' age signal and the two things a minor's verdict stops
 - [docs/breez-sdk-binding.md](docs/breez-sdk-binding.md), [docs/i18n.md](docs/i18n.md),
   [docs/testing.md](docs/testing.md)
 - [docs/design-system.md](docs/design-system.md), [docs/supply-chain.md](docs/supply-chain.md),

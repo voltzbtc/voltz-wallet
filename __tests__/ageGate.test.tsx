@@ -105,7 +105,7 @@ describe('the first run', () => {
     expect(text).not.toContain(i18n.t('welcome.import'))
   })
 
-  // I2 and I4: anything short of a range under 18 leaves the welcome as it is.
+  // Anything short of a range under 18 leaves the welcome as it is.
   test.each([
     ['nobody regulated', () => store.regulated(false)],
     ['an adult', () => store.shares(18, -1)],
@@ -141,7 +141,7 @@ describe('the first run', () => {
   })
 })
 
-// I1: a wallet already on the device opens past the PIN whatever the signal says, so Send, Receive,
+// A wallet already on the device opens past the PIN whatever the signal says, so Send, Receive,
 // the words and the emergency exit, all behind the navigator, stay where they are.
 test('a wallet already here opens for a minor', async () => {
   keychain.set(SEED, WORDS)
