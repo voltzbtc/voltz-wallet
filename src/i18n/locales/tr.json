@@ -93,7 +93,7 @@
     "words_other": "{{count}} kelime",
     "dice": "Zar ile oluştur (gelişmiş)",
     "bootFailed": "Bu cihazdaki cüzdanlar şu anda açılamadı. Birazdan tekrar dene ya da desteğe yaz.",
-    "bootUnreadable": "Burada kayıtlı cüzdanlar bu telefonda açılamıyor. Bu, uygulamanın verileri başka bir telefondan kopyalandığında olur.",
+    "bootUnreadable": "Burada kayıtlı cüzdanlar bu telefonda açılamadı. Tekrar dene başarısız olmaya devam ederse, uygulamanın verileri büyük olasılıkla başka bir telefondan kopyalanmıştır ve geri dönmenin yolu Sil ve geri yükle'dir.",
     "bootRestore": "Sil ve geri yükle",
     "contactSupport": "Desteğe yaz",
     "terms": "Devam ederek <terms>Kullanım koşullarını</terms> kabul etmiş ve <privacy>Gizlilik politikasını</privacy> okuduğunuzu onaylamış olursunuz."

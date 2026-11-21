@@ -92,7 +92,7 @@
     "words_other": "{{count}} từ",
     "dice": "Tạo bằng xúc xắc (nâng cao)",
     "bootFailed": "Hiện không thể mở các ví trên thiết bị này. Hãy thử lại sau giây lát, hoặc viết cho bộ phận hỗ trợ.",
-    "bootUnreadable": "Không thể mở các ví được lưu ở đây trên điện thoại này. Điều này xảy ra khi dữ liệu của ứng dụng được sao chép từ một điện thoại khác.",
+    "bootUnreadable": "Không mở được các ví được lưu ở đây trên điện thoại này. Nếu Thử lại vẫn tiếp tục thất bại, nhiều khả năng dữ liệu của ứng dụng đã được sao chép từ một điện thoại khác, và cách để vào lại là Xóa và khôi phục.",
     "bootRestore": "Xóa và khôi phục",
     "contactSupport": "Viết cho bộ phận hỗ trợ",
     "terms": "Khi tiếp tục, bạn đồng ý với <terms>Điều khoản sử dụng</terms> và xác nhận đã đọc <privacy>Chính sách quyền riêng tư</privacy>."

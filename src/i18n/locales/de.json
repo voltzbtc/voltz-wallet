@@ -93,7 +93,7 @@
     "words_other": "{{count}} Wörter",
     "dice": "Mit Würfeln erzeugen (fortgeschritten)",
     "bootFailed": "Die Wallets auf diesem Gerät konnten gerade nicht geöffnet werden. Versuche es gleich noch einmal oder schreib dem Support.",
-    "bootUnreadable": "Die hier gespeicherten Wallets lassen sich auf diesem Telefon nicht öffnen. Das passiert, wenn die Daten der App von einem anderen Telefon kopiert wurden.",
+    "bootUnreadable": "Die hier gespeicherten Wallets ließen sich auf diesem Telefon nicht öffnen. Wenn „Erneut versuchen“ weiter scheitert, wurden die Daten der App wahrscheinlich von einem anderen Telefon kopiert, und „Löschen und wiederherstellen“ ist der Weg zurück.",
     "bootRestore": "Löschen und wiederherstellen",
     "contactSupport": "Dem Support schreiben",
     "terms": "Wenn du fortfährst, akzeptierst du die <terms>Nutzungsbedingungen</terms> und bestätigst, die <privacy>Datenschutzrichtlinie</privacy> gelesen zu haben."

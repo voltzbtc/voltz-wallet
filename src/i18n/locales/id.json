@@ -92,7 +92,7 @@
     "words_other": "{{count}} kata",
     "dice": "Buat dengan dadu (tingkat lanjut)",
     "bootFailed": "Dompet di perangkat ini tidak dapat dibuka saat ini. Coba lagi sebentar lagi, atau tulis ke dukungan.",
-    "bootUnreadable": "Dompet yang tersimpan di sini tidak dapat dibuka di ponsel ini. Ini terjadi jika data aplikasi disalin dari ponsel lain.",
+    "bootUnreadable": "Dompet yang tersimpan di sini tidak dapat dibuka di ponsel ini. Jika Coba lagi terus gagal, kemungkinan besar data aplikasi disalin dari ponsel lain, dan jalan untuk masuk kembali adalah Hapus dan pulihkan.",
     "bootRestore": "Hapus dan pulihkan",
     "contactSupport": "Tulis ke dukungan",
     "terms": "Dengan melanjutkan, Anda menyetujui <terms>Ketentuan penggunaan</terms> dan menyatakan telah membaca <privacy>Kebijakan privasi</privacy>."

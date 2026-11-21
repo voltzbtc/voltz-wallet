@@ -94,7 +94,7 @@
     "words_other": "{{count}} palabras",
     "dice": "Generar con dados (avanzado)",
     "bootFailed": "No se pudieron abrir las billeteras de este dispositivo ahora. Inténtalo de nuevo en un momento o escribe a soporte.",
-    "bootUnreadable": "Las billeteras guardadas aquí no se pueden abrir en este teléfono. Esto pasa cuando los datos de la app se copiaron desde otro teléfono.",
+    "bootUnreadable": "No se pudieron abrir en este teléfono las billeteras guardadas aquí. Si Intentar de nuevo sigue fallando, lo más probable es que los datos de la app se copiaran desde otro teléfono, y la forma de volver a entrar es Borrar y restaurar.",
     "bootRestore": "Borrar y restaurar",
     "contactSupport": "Escribir a soporte",
     "terms": "Al continuar, aceptas los <terms>Términos de uso</terms> y confirmas que has leído la <privacy>Política de privacidad</privacy>."

@@ -94,7 +94,7 @@
     "words_other": "{{count}} palavras",
     "dice": "Gerar com dados (avançado)",
     "bootFailed": "Não deu para abrir as carteiras deste aparelho agora. Tente de novo em instantes ou escreva para o suporte.",
-    "bootUnreadable": "As carteiras salvas aqui não abrem neste aparelho. Isso acontece quando os dados do app foram copiados de outro aparelho.",
+    "bootUnreadable": "Não deu para abrir neste aparelho as carteiras salvas aqui. Se Tentar de novo continuar falhando, os dados do app provavelmente foram copiados de outro aparelho, e o caminho de volta é Apagar e restaurar.",
     "bootRestore": "Apagar e restaurar",
     "contactSupport": "Escrever para o suporte",
     "terms": "Ao continuar, você aceita os <terms>Termos de uso</terms> e confirma que leu a <privacy>Política de privacidade</privacy>."
