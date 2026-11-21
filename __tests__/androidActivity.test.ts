@@ -79,10 +79,16 @@ test('no Modal window draws the recovery words or a passphrase', () => {
 // An empty affinity leaves the task nothing another app's activity can match, and singleTask still
 // finds the one activity by its component, so a lightning: link reaches the running app.
 test('the one activity has no task affinity and keeps singleTask and its lightning: filter', () => {
-  const manifest = readFileSync(join(ROOT, 'android/app/src/main/AndroidManifest.xml'), 'utf8').replace(
-    /<!--[\s\S]*?-->/g,
-    '',
-  )
+  // A comment ends at its first `-->`; splitting on the markers drops each one whole, so a commented
+  // activity neither counts nor hides the real one.
+  const manifest = readFileSync(join(ROOT, 'android/app/src/main/AndroidManifest.xml'), 'utf8')
+    .split('<!--')
+    .map((part, index) => {
+      if (index === 0) return part
+      const end = part.indexOf('-->')
+      return end < 0 ? '' : part.slice(end + 3)
+    })
+    .join('')
   const activities = [...manifest.matchAll(/<activity\b([\s\S]*?)<\/activity>/g)].map(match => match[1])
   expect(activities).toHaveLength(1)
   const [main] = activities

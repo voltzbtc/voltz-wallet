@@ -368,7 +368,7 @@ describe('the Android module', () => {
   it('answers a prompt asked for once the app left, and ends an entry only when no key opens it', () => {
     const module = read('android/app/src/main/java/app/usevoltz/biometric/NativeVoltzBiometricModule.kt')
     expect(module).toMatch(/if \(activity\.supportFragmentManager\.isStateSaved\) \{\s*promise\.reject\(UNAVAILABLE/)
-    expect(module).toMatch(/catch \(error: AEADBadTagException\) \{(\s*\/\/.*)*\s*clear\(\)\s*promise\.reject\(INVALIDATED/)
+    expect(module).toMatch(/catch \(error: AEADBadTagException\) \{(?:\s*\/\/[^\n]*\n)*\s*clear\(\)\s*promise\.reject\(INVALIDATED/)
     expect(module).toMatch(/if \(invalidated\(error\)\) \{\s*clear\(\)\s*promise\.reject\(INVALIDATED[^}]*\} else \{\s*promise\.reject\(FAILED/)
     expect(module).not.toMatch(/runCatching \{ keyStore\(\)\.getKey/)
   })
