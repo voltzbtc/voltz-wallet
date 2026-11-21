@@ -57,6 +57,17 @@ Then check the change against the rules the tools enforce only in part:
 - Anything that depends on a device (native modules, the Keychain, rendering, a live SDK connection)
   says in the pull request whether it was run on a device or simulator, and on which platform.
 
+## Design
+
+The app's screens and components are drawn in a Figma file anyone with the link can open,
+[Voltz Wallet, design system e app](https://www.figma.com/design/HHYuNcpckPu4KfZyDtYkzf). Its variables
+carry the names of the tokens in `src/theme.ts` (`color/surface` is `colors.surface`, `space/lg` is
+`space.lg`), its text styles follow the roles of `Txt`, and its components carry the names of those in
+`src/components`, each description naming the code it mirrors. A visual change starts from those
+components and variables. The file draws text in Inter in place of the platform fonts, so type is
+measured in the app, and where the file and the code disagree the code decides and the file is the one
+corrected.
+
 ## Photos of a visual change
 
 A change that touches a screen attaches a before and an after photo of that screen, on Android and
