@@ -67,6 +67,7 @@ src/
   wallet/               logic kept out of components and tested directly (dollarMode.tsx is its one React module)
     spark.ts passkey.ts the only modules that import the Breez SDK, passkey.ts alone for its passkey provider
     seed.ts             BIP39 generation, validation and Keychain storage
+    secureRandom.ts     the one source of random bytes, which refuses a draw that touched Math.random
     wallet.ts           wallet lifecycle over walletRegistry.ts (add, switch, remove)
     amount.ts fiat.ts   amount parsing, fiat conversion and formatting for any currency code
     tokens.ts assets.ts known Spark tokens, the Home asset list and its order
