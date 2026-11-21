@@ -44,7 +44,7 @@ export function setDeeplinkHandler(next: DeeplinkHandler | null): void {
   deliverPending()
 }
 
-// The app left: every URL waits for the decision its return makes.
+// Called as the app leaves, so every URL waits for the decision its return makes.
 export function holdDeeplinks(): void {
   hold = 'deciding'
 }
