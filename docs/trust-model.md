@@ -229,7 +229,7 @@ With notifications on, the gateway sends each notice as a Firebase Cloud Messagi
 notification block, and FCM reaches an iPhone through the Apple Push Notification service. The block
 carries the title and body in the wording the device registered, with the amount in sats filled in
 for a payment received at the lightning address, a Lightning payment received, sent or not
-completed, and an on-chain deposit, and with the domain filled in for the reminders about a domain
+completed, and an on-chain payment received, and with the domain filled in for the reminders about a domain
 of the wallet's own and the notice that it is serving. Google, and Apple for an iPhone, therefore see
 that text, the amount and the domain, the time, and the device's push token. A payment notice carries
 only that title and body, and a notice about a domain also carries its host, for the app to route the
@@ -237,9 +237,9 @@ tap; none carries a key, an invoice, an address or a transaction id.
 
 While the app is away the system draws the notice itself and no app code runs, so what a locked
 screen shows of it follows the system: on iOS the person's Show Previews setting, and on Android the
-lock screen setting together with the app's notification channel. The channel marks its notices
-private, so a locked Android screen shows that a notice came from the app and hides its text. Builds
-up to 1.0.3 set no visibility on the channel, so there the lock screen setting alone decides.
+lock screen setting. An app cannot make its own channel private on the lock screen: Android resets
+that field on every channel an app creates, so the text of a payment notice, amount included, shows
+on a locked screen whenever the person's setting shows notice contents.
 
 ## Stable balance rewards
 
