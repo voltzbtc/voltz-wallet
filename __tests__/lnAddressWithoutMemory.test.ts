@@ -346,6 +346,41 @@ describe('a wallet that remembers no name and reads none', () => {
   })
 })
 
+describe('what the generated-name loop logs', () => {
+  // A release build keeps its logs, so neither the names tried nor the gateway's own text go there.
+  test('says why each name failed by kind, never by the name or the refusal text', async () => {
+    firstClaim = null
+    fetchMock.mockImplementation(answering(200, keyState({ given: null, givenHeldBy: null })))
+    let checks = 0
+    sdk.checkLightningAddressAvailable.mockImplementation(async () => {
+      checks += 1
+      return checks % 2 === 0
+    })
+    sdk.registerLightningAddress.mockImplementation(async ({ username }: { username: string }) => {
+      throw Object.assign(new Error(`${username} refused: owner of pay.bakery.example says no`), {
+        tag: 'ServiceConnectivity',
+        inner: [`gateway answered 409 for ${username}`],
+      })
+    })
+
+    expect(await sparkEnsureLnAddress()).toBeNull()
+
+    const tried = sdk.checkLightningAddressAvailable.mock.calls.map(([req]) => req.username as string)
+    expect(tried.length).toBeGreaterThan(1)
+    const logged = jest
+      .mocked(console.warn)
+      .mock.calls.map(args => args.map(String).join(' '))
+      .join('\n')
+    expect(logged).toContain('lightning address unavailable')
+    expect(logged).toContain('lightning address refused: Error ServiceConnectivity')
+    for (const name of tried) {
+      expect(logged).not.toContain(name)
+    }
+    expect(logged).not.toContain('bakery')
+    expect(logged).not.toContain('409')
+  })
+})
+
 describe('a transfer', () => {
   const auth = { username: N, pubkey: PUB, signature: 'sig', domain: HOST, timestamp: 1n }
 

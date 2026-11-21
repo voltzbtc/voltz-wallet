@@ -7,6 +7,7 @@ import {
   clearPendingPurchase,
   confirmDomain,
   loadPendingPurchase,
+  normaliseDomain,
   recordPurchaseRefusal,
   releasePendingPurchase,
   savePendingPurchase,
@@ -125,13 +126,16 @@ export function pendingChargesMessage(pubkey: string, timestamp: number): string
   return [VERSION, 'pending-charges', pubkey, String(timestamp)].join('\n')
 }
 
+// A domain is read only as the bare hostname the gateway writes, already normalised: it goes into the
+// confirm's signed body and onto the card the person reads, so a value carrying an address, a path or a
+// scheme is a row this build cannot read.
 function isCharge(value: unknown): value is PendingCharge {
   const row = value as PendingCharge
   return (
     typeof row?.reference === 'string' &&
     (row.kind === 'name' || row.kind === 'tier') &&
     typeof row.domain === 'string' &&
-    row.domain !== '' &&
+    normaliseDomain(row.domain) === row.domain &&
     typeof row.subject === 'string' &&
     row.subject !== '' &&
     typeof row.amountSats === 'number'

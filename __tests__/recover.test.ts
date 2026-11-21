@@ -1,5 +1,6 @@
 import RNFS from 'react-native-fs'
 import {
+  fetchPendingCharges,
   helpMailUrl,
   paymentEvidence,
   pendingChargesMessage,
@@ -233,6 +234,28 @@ describe('a treasury that cannot answer', () => {
     })
     await recoverPurchases(deps)
     expect((await asked()).w_a.open).toBe(true)
+  })
+
+  test.each([
+    ['an address', `${BUILD}@other.example`],
+    ['a path', 'other.example/x'],
+    ['a scheme', `https://${SOLD_ON}`],
+    ['nothing', ''],
+  ])('a charge whose domain carries %s is a row this build cannot read', async (_what, domain) => {
+    const { deps, calls } = harness({
+      pending: ok({ charges: [{ ...NAME_CHARGE, reference: 'ref-odd', domain }, NAME_CHARGE] }),
+    })
+
+    const reply = await fetchPendingCharges(deps, BUILD)
+    expect(reply.whole).toBe(false)
+    expect(reply.charges.map(c => c.reference)).toEqual([NAME_CHARGE.reference])
+
+    const found = await recoverPurchases(deps)
+    expect(found).toMatchObject({ status: 'ready', subject: `bakery@${SOLD_ON}` })
+    expect((await asked()).w_a.open).toBe(true)
+    const confirms = calls.filter(c => c.url.includes('/api/quote/confirm'))
+    expect(confirms.map(c => c.body.reference)).not.toContain('ref-odd')
+    expect(calls.every(c => c.url.startsWith(`https://${BUILD}/`))).toBe(true)
   })
 
   test('and still recovers the charge it could read', async () => {

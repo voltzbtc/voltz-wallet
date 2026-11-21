@@ -379,6 +379,22 @@ describe('one credential for one attempt', () => {
     expect(auth.credentials[0].userName).toMatch(/^voltz-[a-z0-9]+-0102030405$/)
   })
 
+  test('a user name drawn through Math.random registers nothing', async () => {
+    const weak = jest.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation(array => {
+      const view = array as Uint8Array
+      for (let i = 0; i < view.length; i += 1) {
+        view[i] = Math.floor(Math.random() * 256)
+      }
+      return array
+    })
+    try {
+      await expect(passkeyAttempt('register')()).rejects.toThrow('non-crypto RNG')
+    } finally {
+      weak.mockRestore()
+    }
+    expect(auth.calls.createPasskey).toBe(0)
+  })
+
   test('restoring never registers, whatever comes back', async () => {
     await expect(failure(passkeyAttempt('restore'))).resolves.toBe('noCredential')
     expect(auth.calls.createPasskey).toBe(0)

@@ -1,6 +1,6 @@
-import 'react-native-get-random-values'
 import * as Keychain from 'react-native-keychain'
 import { getBreezLnurlDomain } from '../config'
+import { secureBytes, toHex } from './secureRandom'
 import { forgetProof, isWebhookSecret } from './webhook'
 
 // What this device holds for one wallet's payment webhook. Kept in the Keychain, never in a file,
@@ -34,13 +34,10 @@ const SECRET_BYTES = 32
 const ZERO_TAIL_LIMIT = 4
 
 // 32 bytes from the platform's CSPRNG, as 64 lowercase hex characters. Refuses rather than fall back,
-// since a guessable secret lets anyone sign a payment notice for this wallet.
+// missing source and Math.random included (secureBytes), since a guessable secret lets anyone sign a
+// payment notice for this wallet.
 export function drawWebhookSecret(): string {
-  if (typeof globalThis.crypto?.getRandomValues !== 'function') {
-    throw new Error('refusing to draw a webhook secret: crypto.getRandomValues is unavailable')
-  }
-  const bytes = new Uint8Array(SECRET_BYTES)
-  globalThis.crypto.getRandomValues(bytes)
+  const bytes = secureBytes(SECRET_BYTES, 'a webhook secret')
   let zeroTail = 0
   while (zeroTail < bytes.length && bytes[bytes.length - 1 - zeroTail] === 0) {
     zeroTail += 1
@@ -48,7 +45,7 @@ export function drawWebhookSecret(): string {
   if (zeroTail >= ZERO_TAIL_LIMIT) {
     throw new Error('refusing to draw a webhook secret: the draw ended in a run of zero bytes')
   }
-  return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('')
+  return toHex(bytes)
 }
 
 function parse(raw: string): WebhookState | null {
