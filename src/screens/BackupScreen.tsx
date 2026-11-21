@@ -146,7 +146,8 @@ export function BackupScreen({
               <Notice>
                 <Txt role="caption">{t('passphrase.warning')}</Txt>
               </Notice>
-              <PassphraseField value={pass} onChangeText={setPass} />
+              {/* It can be revealed, so it leaves a recorded screen with the words and keeps its value. */}
+              {drawn && <PassphraseField value={pass} onChangeText={setPass} />}
             </>
           )}
         </View>

@@ -114,10 +114,12 @@ export function ImportScreen({ onImported, onBack, initial, above, headerTitled 
   }, [valid, phrase, usedPassphrase])
   const fingerprint =
     valid && derived && derived.phrase === phrase && derived.passphrase === usedPassphrase ? derived.fingerprint : ''
-  // The fields leave with a capture and no blur reports it, so the focus goes with them.
+  // The fields leave with a capture and no blur reports it, so the focus goes with them, and the
+  // passphrase field comes back waiting to be tapped, as one restored from an earlier visit does.
   useEffect(() => {
     if (!drawn) {
       setFocused(null)
+      setPassphraseAsked(false)
     }
   }, [drawn])
   const suggestions =
@@ -342,7 +344,8 @@ export function ImportScreen({ onImported, onBack, initial, above, headerTitled 
         <CheckBox on={usePassphrase} />
         <Txt role="bodyStrong">{t('import.passphraseToggle')}</Txt>
       </Touch>
-      {usePassphrase && (
+      {/* It can be revealed, so it leaves a recorded screen with the words and keeps its value. */}
+      {usePassphrase && drawn && (
         <Field
           autoFocus={passphraseAsked}
           value={passphrase}
