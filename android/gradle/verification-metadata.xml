@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Checksums for the three modules Play Billing brings in, and only for them. Every other component is
-  trusted by the two rules below, so a bump elsewhere does not break the build. A missing or wrong
-  checksum for billing, play-services-location or play-services-places-placereport fails the build.
+  Checksums for the three modules Play Billing brings in and for Play's age-signals, and only for
+  them. Every other component is trusted by the three rules below, so a bump elsewhere does not break
+  the build. A missing or wrong checksum for billing, play-services-location,
+  play-services-places-placereport or age-signals fails the build.
   Each sha256 was computed from dl.google.com and compared with the .sha256 Google publishes beside
   the file; placereport publishes only a .sha1, which was compared instead. See docs/supply-chain.md.
 -->
@@ -13,8 +14,9 @@
     <verify-metadata>true</verify-metadata>
     <verify-signatures>false</verify-signatures>
     <trusted-artifacts>
-      <trust group="^(?!com[.]android[.]billingclient$|com[.]google[.]android[.]gms$).*$" regex="true"/>
+      <trust group="^(?!com[.]android[.]billingclient$|com[.]google[.]android[.]gms$|com[.]google[.]android[.]play$).*$" regex="true"/>
       <trust group="^com[.]google[.]android[.]gms$" name="^(?!play-services-location$|play-services-places-placereport$).*$" regex="true"/>
+      <trust group="^com[.]google[.]android[.]play$" name="^(?!age-signals$).*$" regex="true"/>
     </trusted-artifacts>
   </configuration>
   <components>
@@ -29,6 +31,10 @@
     <component group="com.google.android.gms" name="play-services-places-placereport" version="17.0.0">
       <artifact name="play-services-places-placereport-17.0.0.aar"><sha256 value="2c7fd63ad02f28150ae4ffe4615dac7d694d790e2c4667f777aedc8ee054e929" origin="Google Maven, sha1 matches the published .sha1, 2026-10-13"/></artifact>
       <artifact name="play-services-places-placereport-17.0.0.pom"><sha256 value="23604d3a278bd430af4f204105e48492f71501516201d8a2a8e72253fb9396f7" origin="Google Maven, sha1 matches the published .sha1, 2026-10-13"/></artifact>
+    </component>
+    <component group="com.google.android.play" name="age-signals" version="0.0.6">
+      <artifact name="age-signals-0.0.6.aar"><sha256 value="d4cd5e5db6b53f3c51b784bd9ae648b1a2b4eb51b5d9b5dee276809bf0a8e36d" origin="Google Maven, matches the published .sha256, 2026-11-20"/></artifact>
+      <artifact name="age-signals-0.0.6.pom"><sha256 value="b444d3c4594ed34262ce9779dea023d5cfdbbd6e834414cf3e1b1cf1b23c90a0" origin="Google Maven, matches the published .sha256, 2026-11-20"/></artifact>
     </component>
   </components>
 </verification-metadata>

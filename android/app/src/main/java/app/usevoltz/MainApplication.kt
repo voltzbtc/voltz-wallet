@@ -3,6 +3,7 @@ package app.usevoltz
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import app.usevoltz.age.NativeVoltzAgePackage
 import app.usevoltz.biometric.NativeVoltzBiometricPackage
 import app.usevoltz.durable.NativeVoltzDurablePackage
 import app.usevoltz.privacy.NativeVoltzPrivacyPackage
@@ -29,6 +30,7 @@ class MainApplication : Application(), ReactApplication {
           add(NativeVoltzPrivacyPackage())
           add(NativeVoltzDurablePackage())
           add(NativeVoltzBiometricPackage())
+          add(NativeVoltzAgePackage())
         },
     )
   }

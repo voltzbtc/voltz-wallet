@@ -1279,5 +1279,12 @@
     "unknownToken": "Một token mà Voltz không nhận ra",
     "unknownTokenAmount": "{{amount}} của một token mà Voltz không nhận ra",
     "tokenAmountUnread": "Một khoản bằng token"
+  },
+  "ageGate": {
+    "title": "Voltz dành cho người từ 18 tuổi trở lên",
+    "body": "Tài khoản cửa hàng ứng dụng của bạn cho biết bạn chưa đủ 18 tuổi, nên không thể tạo hoặc thêm ví mới trên thiết bị này.",
+    "restore": "Ví từng có trên thiết bị này sẽ quay lại bằng cụm từ khôi phục của nó.",
+    "contest": "Nếu tuổi của bạn không đúng, hãy sửa trong tài khoản cửa hàng ứng dụng rồi mở lại Voltz.",
+    "purchase": "Việc mua dành cho người từ 18 tuổi trở lên. Nếu tuổi của bạn không đúng, hãy sửa trong tài khoản cửa hàng ứng dụng rồi mở lại Voltz."
   }
 }

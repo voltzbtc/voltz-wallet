@@ -418,3 +418,53 @@ test("the choice follows Welcome's: one full-width button to create, then import
     expect(flat(link.props.style).minHeight).toBe(touch.min)
   }
 })
+
+// The store's age signal under 18 takes the place of every way to a new wallet; the wallets already on
+// the device are elsewhere and keep working.
+describe('the store age signal', () => {
+  type AgeStore = typeof import('../specs/__mocks__/NativeVoltzAge').ageStore
+  const ageStore: AgeStore = jest.requireMock('../specs/NativeVoltzAge').ageStore
+  const { __resetAgeSignalForTests, askAgeSignal, AgeRefusal } = jest.requireActual('../src/wallet/ageSignal')
+
+  beforeEach(() => {
+    __resetAgeSignalForTests()
+  })
+
+  test('under 18 shows what the app is for instead of the choice, and keeps the import', async () => {
+    ageStore.shares(13, 15)
+    await askAgeSignal()
+    const tree = await render()
+    expect(allText(tree)).toContain(i18n.t('ageGate.title'))
+    expect(allText(tree)).not.toContain(i18n.t('addWallet.create'))
+    expect(allText(tree)).not.toContain(i18n.t('welcome.dice'))
+    await press(tree, i18n.t('addWallet.import'))
+    expect(allText(tree)).toContain(i18n.t('import.subtitle'))
+    expect(allText(tree)).not.toContain(i18n.t('ageGate.title'))
+  })
+
+  test('an adult keeps the choice', async () => {
+    ageStore.shares(18, -1)
+    await askAgeSignal()
+    const tree = await render()
+    expect(allText(tree)).not.toContain(i18n.t('ageGate.title'))
+    expect(allText(tree)).toContain(i18n.t('addWallet.create'))
+  })
+
+  // The write refuses on an answer that landed while the words were on screen.
+  test('a refusal at the write shows what the app is for, not a failure', async () => {
+    jest.mocked(generateMnemonic).mockReturnValueOnce(VALID_12).mockReturnValueOnce(VALID_24)
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+    jest.mocked(addAndActivateWallet).mockImplementationOnce(async () => {
+      ageStore.shares(13, 15)
+      await askAgeSignal()
+      throw new AgeRefusal()
+    })
+    const tree = await render()
+    await press(tree, i18n.t('addWallet.create'))
+    await press(tree, i18n.t('backup.confirm'))
+    expect(allText(tree)).toContain(i18n.t('ageGate.title'))
+    expect(allText(tree)).not.toContain(i18n.t('addWallet.failed'))
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+  })
+})

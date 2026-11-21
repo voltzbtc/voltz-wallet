@@ -18,6 +18,7 @@ import {
 } from './store'
 import { loadRegistry } from './walletRegistry'
 import { retryAtOf } from './lnRefusal'
+import { minorBySignal } from './ageSignal'
 import { deletionRefusal, noteGatewayDeleted } from './deletionMark'
 import { asideExists, isUnreadableFile, readDurable, serialQueue, setAside, writeDurable } from './durableFile'
 
@@ -981,6 +982,8 @@ export function startStoreSync(ctx: StoreContext = liveStoreContext()): () => vo
 // Every outcome after the order opened names its reference, which support needs to find the purchase.
 export type StoreBuyOutcome =
   | { kind: 'unavailable' }
+  // The store's age signal says the person is under 18 (ageSignal.ts). No order opened.
+  | { kind: 'adultsOnly' }
   | { kind: 'orderRefused'; status: number; code: string; retryAt?: number }
   | { kind: 'orderRetry' }
   // The store's own outcome, cancelled included. A cancelled order lapses on its own.
@@ -1009,6 +1012,9 @@ export async function buyInStore(
   const wallet = ctx.walletId()
   if (!storeAvailable() || !wallet) {
     return { kind: 'unavailable' }
+  }
+  if (await minorBySignal()) {
+    return { kind: 'adultsOnly' }
   }
   const since = conclusions
   let deps: StoreGatewayDeps

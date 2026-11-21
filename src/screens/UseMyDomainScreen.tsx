@@ -1126,6 +1126,9 @@ export function UseMyDomainScreen(): React.JSX.Element {
       case 'unavailable':
         setError(t('store.unavailable'))
         return
+      case 'adultsOnly':
+        setError(t('ageGate.purchase'))
+        return
       case 'orderRetry':
         setError(t('store.retry'))
         return

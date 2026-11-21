@@ -1284,5 +1284,12 @@
     "unknownToken": "Voltz'un tanımadığı bir token",
     "unknownTokenAmount": "{{amount}}, Voltz'un tanımadığı bir token",
     "tokenAmountUnread": "Bir token tutarı"
+  },
+  "ageGate": {
+    "title": "Voltz 18 yaş ve üzeri içindir",
+    "body": "Uygulama mağazası hesabın 18 yaşından küçük olduğunu gösteriyor, bu yüzden bu cihazda yeni cüzdan oluşturulamaz veya eklenemez.",
+    "restore": "Daha önce bu cihazda olan bir cüzdan, kurtarma ifadesiyle geri gelir.",
+    "contest": "Yaşın yanlışsa uygulama mağazası hesabında düzelt ve Voltz'u yeniden aç.",
+    "purchase": "Satın almalar 18 yaş ve üzeri içindir. Yaşın yanlışsa uygulama mağazası hesabında düzelt ve Voltz'u yeniden aç."
   }
 }

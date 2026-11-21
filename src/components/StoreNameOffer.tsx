@@ -562,6 +562,9 @@ function Offer({
       case 'unavailable':
         say(t('store.unavailable'))
         return
+      case 'adultsOnly':
+        say(t('ageGate.purchase'))
+        return
       case 'orderRetry':
         say(t('store.retry'))
         return

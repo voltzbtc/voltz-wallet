@@ -158,6 +158,24 @@ describe('buying', () => {
     expect(finished()).toEqual([])
   })
 
+  // A store age signal under 18 stops the purchase before any order holds the name or a sheet opens.
+  test('a minor by the store age signal opens no order and no sheet', async () => {
+    await boot('ios')
+    jest.requireMock('../specs/NativeVoltzAge').ageStore.shares(13, 15)
+    expect(await sp.buyInStore('name', 'alice', context())).toEqual({ kind: 'adultsOnly' })
+    expect(calls).toEqual([])
+    expect(double.control.state.calls.buy).toEqual([])
+  })
+
+  test('an adult by the store age signal buys as anyone else does', async () => {
+    await boot('ios')
+    jest.requireMock('../specs/NativeVoltzAge').ageStore.shares(18, -1)
+    answers['/api/store/order'] = [appleOrder()]
+    double.control.scriptBuy(() => ({ status: 'cancelled', code: null, subCode: null, message: null, purchase: null }))
+    expect(await sp.buyInStore('name', 'alice', context())).toEqual({ kind: 'failed', code: 'cancelled' })
+    expect(calls.map(c => c.path)).toEqual(['/api/store/order'])
+  })
+
   test('a paid Apple purchase is confirmed with the reference from the transaction and finished', async () => {
     await boot('ios')
     answers['/api/store/order'] = [appleOrder()]

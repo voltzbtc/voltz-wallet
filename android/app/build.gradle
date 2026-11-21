@@ -180,6 +180,11 @@ dependencies {
     // kotlinx-coroutines past the app's Kotlin. gradle/verification-metadata.xml pins its checksums.
     implementation("com.android.billingclient:billing:9.1.0")
 
+    // The Play Age Signals API for the stores' age signal (android/app/src/main/java/app/usevoltz/age).
+    // Exact version, and 0.0.6 at least: it is the first with getApplicableAgeFeatures, which keeps the
+    // request to people Play marks as regulated. gradle/verification-metadata.xml pins its checksums.
+    implementation("com.google.android.play:age-signals:0.0.6")
+
     // The QR reader for a picked image (android/app/src/main/java/app/usevoltz/qrimage) compiles against
     // the ML Kit artifact VisionCamera already puts in the APK. VisionCamera declares it `implementation`,
     // which stays off this module's compile classpath, and compileOnly adds nothing to what ships. The

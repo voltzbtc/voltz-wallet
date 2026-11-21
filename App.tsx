@@ -67,6 +67,9 @@ import { ScreenTitle } from './src/components/ScreenTitle'
 import { Txt } from './src/components/Txt'
 import { TermsAcceptance } from './src/components/TermsAcceptance'
 import { SupportMailCard, useSupportMail, type SupportNote } from './src/components/SupportMail'
+import { AdultsOnly } from './src/components/AdultsOnly'
+import { askAgeSignal, isAgeRefusal } from './src/wallet/ageSignal'
+import { useMinorSignal } from './src/hooks/useMinorSignal'
 import { colors, layer, radius, space } from './src/theme'
 
 type Stage =
@@ -137,6 +140,7 @@ function App(): React.JSX.Element {
   // A passkey sheet open over the first run, which holds the ways out of the step.
   const [passkeyBusy, setPasskeyBusy] = useState(false)
   const seed = useSeedPair()
+  const minor = useMinorSignal()
   useForegroundSync()
   useNotificationRecheck()
 
@@ -383,6 +387,11 @@ function App(): React.JSX.Element {
 
   useEffect(boot, [boot])
 
+  // The store's age signal is asked at every launch, as California's law asks, and never holds the boot.
+  useEffect(() => {
+    askAgeSignal().catch(() => undefined)
+  }, [])
+
   function contactSupport() {
     mail.open(`mailto:${SUPPORT_EMAIL}`, null)
   }
@@ -399,7 +408,14 @@ function App(): React.JSX.Element {
     if (!writing.current) {
       setCommitted(true)
       writing.current = write().catch((err: unknown) => {
-        console.warn(`first write failed: ${(err as Error)?.message ?? String(err)}`)
+        // A refusal for age wrote nothing and goes back to the page that says why. It is not logged,
+        // since a log of it would say the person's age.
+        if (isAgeRefusal(err)) {
+          setCommitted(false)
+          setStage('welcome')
+        } else {
+          console.warn(`first write failed: ${(err as Error)?.message ?? String(err)}`)
+        }
         writing.current = null
         if (derivable) {
           setCommitted(false)
@@ -678,9 +694,21 @@ function App(): React.JSX.Element {
                       </ScrollView>
                     )}
 
+                    {/* The ways to a new wallet give way when the store's age signal says the person
+                        is under 18, and the import step stays: after Forgot PIN, Erase and restore or
+                        a backup that carried the list, the words of a wallet this device held bring it
+                        back, and the write refuses any other (wallet.ts). */}
+                    {minor && (stage === 'welcome' || stage === 'backup') && (
+                      <ScrollView contentContainerStyle={styles.centredStage}>
+                        <Image source={require('./src/assets/logo.png')} style={styles.logo} />
+                        <AdultsOnly restore={{ label: t('welcome.import'), onPress: () => setStage('import') }} />
+                        <TermsAcceptance style={styles.welcomeTerms} />
+                      </ScrollView>
+                    )}
+
                     {/* Scrolls as the boot failure does, since at the largest text sizes the
                         actions and the terms line under them can be taller than the screen. */}
-                    {stage === 'welcome' && (
+                    {stage === 'welcome' && !minor && (
                       <ScrollView contentContainerStyle={styles.centredStage}>
                         <Image source={require('./src/assets/logo.png')} style={styles.logo} />
                         <ScreenTitle
@@ -720,7 +748,7 @@ function App(): React.JSX.Element {
                       </ScrollView>
                     )}
 
-                    {stage === 'backup' && (
+                    {stage === 'backup' && !minor && (
                       <BackupScreen
                         mnemonic={seed.mnemonic}
                         length={12}
