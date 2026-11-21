@@ -178,6 +178,9 @@ export function ImportScreen({ onImported, onBack, initial, above, headerTitled 
       return
     }
     setField(0, text)
+    // Any app that reads the clipboard could take the phrase while this screen stays open or sits in
+    // the background, so it leaves as soon as it is in the fields.
+    Clipboard.setString('')
   }
 
   function chooseSuggestion(word: string) {
