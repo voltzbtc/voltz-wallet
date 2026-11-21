@@ -20,3 +20,19 @@ test('the activity never hands its saved state to the fragments', () => {
   expect(onCreate).not.toMatch(/super\.onCreate\(savedInstanceState\)/)
   expect(onCreate).toMatch(/FLAG_SECURE/)
 })
+
+// An empty affinity leaves the task nothing another app's activity can match, and singleTask still
+// finds the one activity by its component, so a lightning: link reaches the running app.
+test('the one activity has no task affinity and keeps singleTask and its lightning: filter', () => {
+  const manifest = readFileSync(join(__dirname, '..', 'android/app/src/main/AndroidManifest.xml'), 'utf8').replace(
+    /<!--[\s\S]*?-->/g,
+    '',
+  )
+  const activities = [...manifest.matchAll(/<activity\b([\s\S]*?)<\/activity>/g)].map(match => match[1])
+  expect(activities).toHaveLength(1)
+  const [main] = activities
+  expect(main).toMatch(/android:name="\.MainActivity"/)
+  expect(main).toMatch(/android:launchMode="singleTask"/)
+  expect(main).toMatch(/android:taskAffinity=""/)
+  expect(main).toMatch(/<data android:scheme="lightning" \/>/)
+})
