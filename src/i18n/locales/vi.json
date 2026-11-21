@@ -371,6 +371,7 @@
     "wait": "Nhập sai mã PIN quá nhiều lần. Thử lại sau {{time}}.",
     "biometricPrompt": "Mở khóa Voltz",
     "saveFailed": "Không lưu được PIN của bạn trên thiết bị này. Hãy thử lại.",
+    "checkFailed": "Không kiểm tra được PIN của bạn trên thiết bị này. Hãy thử lại.",
     "forgot": "Quên PIN?",
     "forgotTitle": "Xóa các ví để vào lại?",
     "forgotBody": "Không thể khôi phục PIN. Cách duy nhất để vào lại là xóa mọi ví khỏi thiết bị này và khôi phục từng ví bằng cụm từ khôi phục của nó. Không có cụm từ khôi phục, ví và toàn bộ tiền trong đó sẽ mất vĩnh viễn.",

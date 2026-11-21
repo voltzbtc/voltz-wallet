@@ -371,6 +371,7 @@
     "wait": "Terlalu banyak PIN salah. Coba lagi dalam {{time}}.",
     "biometricPrompt": "Buka kunci Voltz",
     "saveFailed": "PIN Anda tidak dapat disimpan di perangkat ini. Coba lagi.",
+    "checkFailed": "PIN Anda tidak dapat diperiksa di perangkat ini. Coba lagi.",
     "forgot": "Lupa PIN Anda?",
     "forgotTitle": "Hapus dompet untuk masuk kembali?",
     "forgotBody": "PIN tidak dapat dipulihkan. Satu-satunya cara untuk masuk kembali adalah menghapus semua dompet dari perangkat ini dan memulihkan masing-masing dengan frasa pemulihannya. Tanpa frasa pemulihan, dompet dan semua uangnya hilang selamanya.",

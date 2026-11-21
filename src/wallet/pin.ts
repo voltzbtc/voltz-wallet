@@ -58,26 +58,54 @@ export function waitAfter(failures: number): number {
   return Math.min(FIRST_WAIT_MS * 2 ** (failures - FREE_ATTEMPTS), LONGEST_WAIT_MS)
 }
 
+// The count as this process knows it, read once and then kept with every write, so a Keychain that
+// fails to read or write the count never takes the wait away while the process lives. null until the
+// first read.
+let held: number | null = null
+
+const reason = (err: unknown): string => (err as Error)?.message ?? String(err)
+
 async function readFailures(): Promise<number> {
-  const stored = await Keychain.getGenericPassword({ service: FAILURES })
-  if (stored === false) {
-    return 0
+  if (held !== null) {
+    return held
   }
-  const failures = Number(stored.password)
-  // An unreadable count waits as the first wait does rather than as none.
-  return Number.isInteger(failures) && failures >= 0 ? failures : FREE_ATTEMPTS
+  try {
+    const stored = await Keychain.getGenericPassword({ service: FAILURES })
+    const failures = stored === false ? 0 : Number(stored.password)
+    // An unreadable count waits as the first wait does rather than as none.
+    held = Number.isInteger(failures) && failures >= 0 ? failures : FREE_ATTEMPTS
+  } catch (err) {
+    console.warn(`pin failures not read: ${reason(err)}`)
+    held = FREE_ATTEMPTS
+  }
+  return held
 }
 
 async function writeFailures(failures: number): Promise<void> {
-  await Keychain.setGenericPassword('failures', String(failures), {
-    service: FAILURES,
-    accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
-  })
+  held = failures
+  try {
+    await Keychain.setGenericPassword('failures', String(failures), {
+      service: FAILURES,
+      accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+    })
+  } catch (err) {
+    console.warn(`pin failures not written: ${reason(err)}`)
+  }
 }
 
-export async function clearPinFailures(): Promise<void> {
-  await Keychain.resetGenericPassword({ service: FAILURES })
+async function resetFailures(): Promise<void> {
+  held = 0
   waitEnds = null
+  try {
+    await Keychain.resetGenericPassword({ service: FAILURES })
+  } catch (err) {
+    console.warn(`pin failures not cleared: ${reason(err)}`)
+  }
+}
+
+// Waits for any check under way, which would otherwise write its count over this clear.
+export function clearPinFailures(): Promise<void> {
+  return inTurn(resetFailures)
 }
 
 // The wait runs on the steady clock of this process, which Settings cannot move, never on the wall
@@ -101,7 +129,8 @@ export async function pinWaitLeft(): Promise<number> {
   return waitEnds === null ? 0 : Math.max(0, waitEnds - steadyNow())
 }
 
-export type PinEntry = { ok: true } | { ok: false; waitMs: number }
+// `waiting` marks a PIN refused unread because a wait runs, which says nothing about the PIN.
+export type PinEntry = { ok: true } | { ok: false; waitMs: number; waiting?: true }
 
 // The keypad's check. Refuses without comparing while a wait runs. Counts the attempt before it
 // compares, so a process ended between the two has still counted it, and clears the count on a match.
@@ -110,30 +139,28 @@ export type PinEntry = { ok: true } | { ok: false; waitMs: number }
 // while one check runs would get past the wait it is about to start.
 let checks: Promise<unknown> = Promise.resolve()
 
-export function enterPin(pin: string): Promise<PinEntry> {
-  const turn = checks.then(() => checkPin(pin))
+function inTurn<T>(step: () => Promise<T>): Promise<T> {
+  const turn = checks.then(step)
   checks = turn.catch(() => undefined)
   return turn
+}
+
+export function enterPin(pin: string): Promise<PinEntry> {
+  return inTurn(() => checkPin(pin))
 }
 
 async function checkPin(pin: string): Promise<PinEntry> {
   const left = await pinWaitLeft()
   if (left > 0) {
-    return { ok: false, waitMs: left }
+    return { ok: false, waitMs: left, waiting: true }
   }
   const failures = (await readFailures()) + 1
   await writeFailures(failures)
   if (await verifyPin(pin)) {
-    await clearPinFailures()
+    await resetFailures()
     return { ok: true }
   }
   const wait = waitAfter(failures)
   startWait(wait)
   return { ok: false, waitMs: wait }
-}
-
-// Forgets this process's read of the count, as a new process starts, which only tests need.
-export function forgetPinWaitForTests(): void {
-  countRead = false
-  waitEnds = null
 }

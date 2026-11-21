@@ -377,6 +377,7 @@
     "wait": "Muitos PINs incorretos. Tente de novo em {{time}}.",
     "biometricPrompt": "Desbloquear a Voltz",
     "saveFailed": "Não deu para guardar seu PIN neste aparelho. Tente de novo.",
+    "checkFailed": "Não deu para conferir seu PIN neste aparelho. Tente de novo.",
     "forgot": "Esqueceu o PIN?",
     "forgotTitle": "Apagar as carteiras para voltar a entrar?",
     "forgotBody": "O PIN não pode ser recuperado. O único caminho de volta é apagar todas as carteiras deste aparelho e restaurar cada uma com a sua frase de recuperação. Sem a frase de recuperação, a carteira e todo o dinheiro dela se perdem para sempre.",

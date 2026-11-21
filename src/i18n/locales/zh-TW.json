@@ -371,6 +371,7 @@
     "wait": "PIN 碼錯誤次數過多。請在 {{time}} 後重試。",
     "biometricPrompt": "解鎖 Voltz",
     "saveFailed": "無法在這部裝置上儲存你的 PIN。請再試一次。",
+    "checkFailed": "無法在這部裝置上確認你的 PIN。請再試一次。",
     "forgot": "忘記 PIN 了？",
     "forgotTitle": "抹除錢包後重新進入？",
     "forgotBody": "PIN 無法恢復。重新進入的唯一方法是抹除這部裝置上的所有錢包，再用各自的恢復短語恢復。沒有恢復短語，錢包及其全部資金將永遠遺失。",

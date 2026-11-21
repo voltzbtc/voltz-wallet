@@ -380,6 +380,7 @@
     "wait": "Zbyt wiele nieprawidłowych kodów PIN. Spróbuj ponownie za {{time}}.",
     "biometricPrompt": "Odblokuj Voltz",
     "saveFailed": "Nie udało się zapisać PIN-u na tym urządzeniu. Spróbuj ponownie.",
+    "checkFailed": "Nie udało się sprawdzić PIN-u na tym urządzeniu. Spróbuj ponownie.",
     "forgot": "Nie pamiętasz PIN-u?",
     "forgotTitle": "Usunąć portfele, aby wrócić?",
     "forgotBody": "Nie da się odzyskać PIN-u. Jedyny sposób na powrót to usunięcie wszystkich portfeli z tego urządzenia i przywrócenie każdego z nich jego frazą odzyskiwania. Bez frazy odzyskiwania portfel i wszystkie jego pieniądze przepadają na zawsze.",

@@ -377,6 +377,7 @@
     "wait": "Demasiados PIN incorrectos. Intenta de nuevo en {{time}}.",
     "biometricPrompt": "Desbloquear Voltz",
     "saveFailed": "No se pudo guardar tu PIN en este dispositivo. Inténtalo de nuevo.",
+    "checkFailed": "No se pudo verificar tu PIN en este dispositivo. Inténtalo de nuevo.",
     "forgot": "¿Olvidaste tu PIN?",
     "forgotTitle": "¿Borrar las billeteras para volver a entrar?",
     "forgotBody": "El PIN no se puede recuperar. La única forma de volver a entrar es borrar todas las billeteras de este dispositivo y restaurar cada una con su frase de recuperación. Sin su frase de recuperación, una billetera y todo su dinero se pierden para siempre.",

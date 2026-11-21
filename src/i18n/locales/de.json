@@ -374,6 +374,7 @@
     "wait": "Zu viele falsche PINs. Versuche es in {{time}} erneut.",
     "biometricPrompt": "Voltz entsperren",
     "saveFailed": "Deine PIN konnte nicht auf diesem Gerät gespeichert werden. Versuch es noch einmal.",
+    "checkFailed": "Deine PIN konnte auf diesem Gerät nicht geprüft werden. Versuch es noch einmal.",
     "forgot": "PIN vergessen?",
     "forgotTitle": "Wallets löschen, um wieder hineinzukommen?",
     "forgotBody": "Eine PIN lässt sich nicht wiederherstellen. Der einzige Weg zurück ist, alle Wallets von diesem Gerät zu löschen und jede mit ihrer Wiederherstellungsphrase wiederherzustellen. Ohne ihre Wiederherstellungsphrase sind eine Wallet und ihr ganzes Geld für immer verloren.",

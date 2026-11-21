@@ -374,6 +374,7 @@
     "wait": "Too many wrong PINs. Try again in {{time}}.",
     "biometricPrompt": "Unlock Voltz",
     "saveFailed": "Your PIN could not be saved on this device. Try again.",
+    "checkFailed": "Your PIN could not be checked on this device. Try again.",
     "forgot": "Forgot your PIN?",
     "forgotTitle": "Erase the wallets to get back in?",
     "forgotBody": "A PIN can't be recovered. The only way back in is to erase every wallet from this device and restore each one with its recovery phrase. Without its recovery phrase, a wallet and all its money are lost for good.",

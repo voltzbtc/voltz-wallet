@@ -377,6 +377,7 @@
     "wait": "Troppi PIN errati. Riprova tra {{time}}.",
     "biometricPrompt": "Sblocca Voltz",
     "saveFailed": "Non è stato possibile salvare il tuo PIN su questo dispositivo. Riprova.",
+    "checkFailed": "Non è stato possibile verificare il tuo PIN su questo dispositivo. Riprova.",
     "forgot": "Hai dimenticato il PIN?",
     "forgotTitle": "Cancellare i wallet per rientrare?",
     "forgotBody": "Il PIN non si può recuperare. L'unico modo per rientrare è cancellare tutti i wallet da questo dispositivo e ripristinarli ciascuno con la sua frase di recupero. Senza la sua frase di recupero, un wallet e tutto il suo denaro vanno persi per sempre.",

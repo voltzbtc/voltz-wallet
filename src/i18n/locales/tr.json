@@ -374,6 +374,7 @@
     "wait": "Çok fazla yanlış PIN. {{time}} sonra tekrar deneyin.",
     "biometricPrompt": "Voltz'un kilidini aç",
     "saveFailed": "PIN'iniz bu cihaza kaydedilemedi. Tekrar deneyin.",
+    "checkFailed": "PIN'iniz bu cihazda kontrol edilemedi. Tekrar deneyin.",
     "forgot": "PIN'inizi mi unuttunuz?",
     "forgotTitle": "Geri dönmek için cüzdanlar silinsin mi?",
     "forgotBody": "PIN kurtarılamaz. Geri dönmenin tek yolu bu cihazdaki tüm cüzdanları silmek ve her birini kendi kurtarma ifadesiyle geri yüklemektir. Kurtarma ifadesi olmadan bir cüzdan ve içindeki tüm para sonsuza dek kaybolur.",

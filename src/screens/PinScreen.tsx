@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Animated, Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '../components/Text'
 import { useTranslation } from 'react-i18next'
-import { clearPinFailures, enterPin, pinWaitLeft } from '../wallet/pin'
+import { clearPinFailures, enterPin, pinWaitLeft, type PinEntry } from '../wallet/pin'
 import { formatClock } from '../wallet/clock'
 import {
   getBiometryKind,
@@ -150,14 +150,17 @@ export function PinScreen(props: Props): React.JSX.Element {
   // While too many wrong PINs wait out their time: when the keypad takes a PIN again, on the steady
   // clock pinWaitLeft uses, and the moment last drawn, which moves once a second.
   const [waitUntil, setWaitUntil] = useState<number | null>(null)
+  // The same moment for the keys, set with the answer that starts the wait rather than at the render
+  // after it, so no press between the two gets past it.
+  const waitEnds = useRef<number | null>(null)
   // While a typed PIN is being checked.
   const checking = useRef(false)
   const [, setTick] = useState(0)
-  const waiting = waitUntil !== null
 
   function startWait(ms: number) {
     setEntered('')
-    setWaitUntil(performance.now() + ms)
+    waitEnds.current = performance.now() + ms
+    setWaitUntil(waitEnds.current)
     // Said once, with the whole wait; the clock drawn below counts it down without speaking.
     setError(t('pin.wait', { time: formatClock(ms, i18n.language) }))
   }
@@ -187,6 +190,7 @@ export function PinScreen(props: Props): React.JSX.Element {
     }
     const timer = setInterval(() => {
       if (performance.now() >= waitUntil) {
+        waitEnds.current = null
         setWaitUntil(null)
         setError(null)
       } else {
@@ -255,19 +259,27 @@ export function PinScreen(props: Props): React.JSX.Element {
     }
 
     checking.current = true
-    let entry: Awaited<ReturnType<typeof enterPin>>
-    try {
-      entry = await enterPin(pin)
-    } finally {
-      checking.current = false
+    const entry: PinEntry | null = await enterPin(pin).catch((err: unknown) => {
+      console.warn(`pin not checked: ${(err as Error)?.message ?? String(err)}`)
+      return null
+    })
+    if (entry === null) {
+      // Not a wrong PIN, so no shake: the dots clear and the keypad takes the next try.
+      setEntered('')
+      setError(t('pin.checkFailed'))
+    } else if (!entry.ok) {
+      // A PIN refused because a wait runs was never compared, so it is not called wrong.
+      if (!entry.waiting) {
+        reject(t('pin.wrong'))
+      }
+      if (entry.waitMs > 0) {
+        startWait(entry.waitMs)
+      }
     }
-    if (entry.ok) {
+    // Dropped once the wait the answer started is set, so no digit lands between the two.
+    checking.current = false
+    if (entry?.ok) {
       props.onDone(pin)
-      return
-    }
-    reject(t('pin.wrong'))
-    if (entry.waitMs > 0) {
-      startWait(entry.waitMs)
     }
   }
 
@@ -275,7 +287,10 @@ export function PinScreen(props: Props): React.JSX.Element {
     if (props.mode !== 'enter') {
       return
     }
-    if (filling.current || !(await unlockWithBiometrics(t('pin.biometricPrompt'), t('common.cancel')))) {
+    if (filling.current) {
+      return
+    }
+    if (!(await unlockWithBiometrics(t('pin.biometricPrompt'), t('common.cancel')))) {
       return
     }
     // The owner's biometric ends any run of wrong PINs.
@@ -333,7 +348,7 @@ export function PinScreen(props: Props): React.JSX.Element {
   function press(key: string) {
     // A wait takes no digit, so nothing typed during it is checked when it ends, and neither does a
     // check still running, whose answer may start one.
-    if (filling.current || waiting || checking.current) {
+    if (filling.current || waitEnds.current !== null || checking.current) {
       return
     }
     if (key === 'del') {

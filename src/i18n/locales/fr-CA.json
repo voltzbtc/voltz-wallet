@@ -377,6 +377,7 @@
     "wait": "Trop de PIN incorrects. Réessayez dans {{time}}.",
     "biometricPrompt": "Déverrouiller Voltz",
     "saveFailed": "Impossible d'enregistrer votre PIN sur cet appareil. Réessayez.",
+    "checkFailed": "Impossible de vérifier votre PIN sur cet appareil. Réessayez.",
     "forgot": "PIN oublié ?",
     "forgotTitle": "Effacer les portefeuilles pour revenir ?",
     "forgotBody": "Un PIN ne peut pas être récupéré. Le seul moyen de revenir est d'effacer tous les portefeuilles de cet appareil et de restaurer chacun avec sa phrase de récupération. Sans sa phrase de récupération, un portefeuille et tout son argent sont perdus pour de bon.",
