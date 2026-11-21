@@ -20,6 +20,7 @@ import {
 import { ForegroundNotice } from '../components/ForegroundNotice'
 import { useSettledSendNotice } from '../hooks/useSettledSendNotice'
 import { HeaderTitle } from '../components/HeaderTitle'
+import { useUnderLock } from '../components/UnderLock'
 import { ReceivedOverlayHost } from '../components/ReceivedOverlayHost'
 import { ReceiveScreen } from '../screens/ReceiveScreen'
 import { SendScreen } from '../screens/SendScreen'
@@ -190,10 +191,16 @@ export function RootNavigator(): React.JSX.Element {
     },
     [navRef],
   )
+  // Send reads the destination over the network as it opens, so a link that arrives under the PIN
+  // waits in deeplink.ts and reaches Send once, after the unlock.
+  const underLock = useUnderLock()
   React.useEffect(() => {
+    if (underLock) {
+      return
+    }
     setDeeplinkHandler(goToSend)
     return () => setDeeplinkHandler(null)
-  }, [goToSend])
+  }, [goToSend, underLock])
 
   // A tapped notification needs the same stash for the same reason. The destination is one of the
   // words in the pushRoute table, never a field off the wire, which is what keeps navigate() out of

@@ -25,8 +25,8 @@ export function routeLightningUrl(url: string): void {
   }
 }
 
-// Pass null on unmount so a URL arriving meanwhile (e.g. after the app re-locks) is stashed rather
-// than lost.
+// Pass null on unmount and while the PIN is drawn over the navigator, so a URL arriving meanwhile is
+// stashed rather than lost, and opens nothing before the unlock.
 export function setDeeplinkHandler(next: DeeplinkHandler | null): void {
   handler = next
   if (next && pending !== null) {
