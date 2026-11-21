@@ -146,3 +146,17 @@ test("the native cover for a trip from the app's own activity starts where the l
   const figure = /OWN_LOCK_AFTER_MS = ([\d_]+)L/.exec(kotlin)?.[1]
   expect(Number(figure?.replace(/_/g, ''))).toBe(RELOCK_AFTER_OWN_MS)
 })
+
+// A destroyed activity gets none of the callbacks an open bracket waits for (a picker's result, a
+// prompt's answer), so its release closes every bracket still open; one left open would time every
+// later trip against the longer limit and raise no cover on the way out.
+test('a destroyed activity closes every bracket still open', () => {
+  const kotlin = readFileSync(
+    join(__dirname, '../android/app/src/main/java/app/usevoltz/privacy/PrivacyCover.kt'),
+    'utf8',
+  )
+  const code = kotlin.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
+  const release = /fun release\(activity: Activity\) \{([\s\S]*?)\n {2}\}/.exec(code)?.[1]
+  expect(release).toBeDefined()
+  expect(release).toMatch(/synchronized\(stamp\) \{\s*ownDepth = 0\s*\}/)
+})
