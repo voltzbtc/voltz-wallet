@@ -15,6 +15,7 @@ and on iPhone, side by side. The reviewer looks at them and says so before appro
 them is in CONTRIBUTING.md. Otherwise, "no screen changed". -->
 
 - [ ] Before and after photos of every screen touched, on Android and on iPhone, or no screen changed
+- [ ] The Figma frame of each new or changed screen is linked, and the file matches the code (see Design in CONTRIBUTING.md), or no screen changed
 
 ## Checks
 
