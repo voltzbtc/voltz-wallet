@@ -126,7 +126,7 @@ import type {
   PaymentMethod,
 } from './payment'
 import { PRIMARY_ID, loadPassphraseFor, loadSeedFor } from './seed'
-import { ReceiveHeldByExit, SpendHeldByExit, sdkWords } from './errors'
+import { ReceiveHeldByExit, SpendHeldByExit, errorKind, sdkWords } from './errors'
 import { exitHoldOnSigner } from './exitHold'
 import { defaultAddressDescription, lnurlText, randomUsername } from './lnaddress'
 import { ensureRegistered, getActiveWalletId } from './walletRegistry'
@@ -278,23 +278,10 @@ function noteSyncFailure(connection: Connection, error: SyncError | undefined): 
 }
 
 // A listener's failure costs that one event's handling, never the process, and is logged rather than
-// lost. A release build keeps its logs and a subscriber's message can carry an address, an amount or
-// a name, so only the error's kind is logged: its name and its code or tag, never its message, and
-// for a thrown value that is not an object, only its type.
+// lost. Only the error's kind is logged (errorKind), since a subscriber's message can carry an
+// address, an amount or a name.
 function warnListener(err: unknown): void {
   console.warn(`sdk listener failed: ${errorKind(err)}`)
-}
-
-function errorKind(err: unknown): string {
-  if (typeof err !== 'object' || err === null) {
-    return typeof err
-  }
-  const { name, code, tag } = err as { name?: unknown; code?: unknown; tag?: unknown }
-  const parts = [name, code, tag].filter(
-    (part): part is string | number => typeof part === 'string' || typeof part === 'number',
-  )
-  // Bounded, since a name or a code is a label and anything longer is text that can carry anything.
-  return parts.length > 0 ? parts.map(part => String(part).slice(0, 40)).join(' ') : 'object'
 }
 
 // The binding hands a listener's rejection to Rust as an unexpected error, which panics in a library
@@ -4315,7 +4302,8 @@ function mintInTurn(scope: EnsureScope, avoid?: string): Promise<SparkLnAddress 
       if (!(await client.checkLightningAddressAvailable({ username }))) {
         // Five refusals in a row is not collision: the generator has ~92k combinations. It means the
         // domain is turning this wallet away, and the wallet ends up with no address and no reason.
-        console.warn('lightning address unavailable:', username)
+        // The name stays out of the log, which a release build keeps.
+        console.warn('lightning address unavailable')
         continue
       }
       if ((await switchedFrom(scope)) || overdue(scope, clock)) {
@@ -4342,8 +4330,9 @@ function mintInTurn(scope: EnsureScope, avoid?: string): Promise<SparkLnAddress 
           return toLnAddress(taken)
         }
         // A wallet with no address cannot be paid at all, and swallowing the reason leaves the screen
-        // blank with nothing to go on. The refusal is the gateway's, so it names what to fix.
-        console.warn('lightning address refused:', username, (err as Error)?.message ?? err)
+        // blank with nothing to go on. Only its kind is logged: the name and the gateway's own text
+        // stay out of a log a release build keeps.
+        console.warn(`lightning address refused: ${errorKind(err)}`)
       }
     }
     return null

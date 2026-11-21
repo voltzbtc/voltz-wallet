@@ -585,19 +585,27 @@ test.each(REFUSALS)('a move the gateway refuses with $code says why', async ({ c
   expect(texts(tree)).toContain(`${en.receive.lnMoveFailed} ${expected}`)
 })
 
-// Anything else the server answers is somebody else's wording, or none at all. It stays in the log,
-// and the person is told only that the move failed.
+// Anything else the server answers is somebody else's wording, or none at all, and the person is told
+// only that the move failed. The log, which a release build keeps, says the refusal's kind alone.
 test.each([
   { what: 'a code the app does not know', body: JSON.stringify({ error: 'something_new' }) },
   { what: 'a body that is not the gateway reply', body: '<html>502 Bad Gateway</html>' },
 ])('a refusal with $what says only that the move failed', async ({ body }) => {
   jest.mocked(sparkClaimLnAddressTransfer).mockRejectedValue(refusedByServer(502, body))
+  const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
 
-  const tree = await render()
-  await move(tree)
+  try {
+    const tree = await render()
+    await move(tree)
 
-  expect(sparkClaimLnAddressTransfer).toHaveBeenCalled()
-  expect(texts(tree)).toContain(en.receive.lnMoveFailed)
+    expect(sparkClaimLnAddressTransfer).toHaveBeenCalled()
+    expect(texts(tree)).toContain(en.receive.lnMoveFailed)
+    const logged = warn.mock.calls.map(args => args.map(String).join(' ')).join('\n')
+    expect(logged).toContain('lightning address move refused: Error NetworkError')
+    expect(logged).not.toContain(body)
+  } finally {
+    warn.mockRestore()
+  }
 })
 
 test('a move that goes through raises no alert and shows the address on its new wallet', async () => {
