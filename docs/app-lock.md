@@ -91,6 +91,11 @@ ten minutes and raises no cover on the way out, which is less than the two minut
   goes back to `'locked'` and the PIN leads on as it does at boot. A step under way when the lock came
   back (an unlock still reading, the offer's write, the words' own write) lands on nothing past it.
 - **Before the first unlock**: nothing changes, and the cover comes down on the return.
+- **A `lightning:` link that arrives while the app is away** is held from the leave until the return's
+  lock decision. A return under the limit hands it to Send at once. A return that locks keeps it until
+  the PIN is passed, and then hands over only the latest link, once. An unlock that lands before the
+  decision releases nothing. `useRelock` sets and settles the hold, and `RootNavigator` releases it with
+  the handler it registers (`src/wallet/deeplink.ts`).
 
 Every lock moves a generation, and draws a keypad of its own keyed by it. A PIN or a biometric is
 checked after a read, which can answer once the app has left and a newer lock is up; the answer carries
