@@ -92,7 +92,7 @@
     "words_other": "{{count}} 個單字",
     "dice": "用骰子產生（進階）",
     "bootFailed": "目前無法開啟這部裝置上的錢包。請稍後再試，或寫信給支援。",
-    "bootUnreadable": "儲存在這裡的錢包無法在這支手機上開啟。當 App 的資料是從另一支手機複製過來時，就會發生這種情況。",
+    "bootUnreadable": "儲存在這裡的錢包無法在這支手機上開啟。如果「重試」一直失敗，App 的資料很可能是從另一支手機複製過來的，請用「抹除並恢復」重新進入。",
     "bootRestore": "抹除並恢復",
     "contactSupport": "寫信給支援",
     "terms": "繼續即表示你接受<terms>使用條款</terms>，並確認已閱讀<privacy>隱私政策</privacy>。"
@@ -371,6 +371,7 @@
     "wait": "PIN 碼錯誤次數過多。請在 {{time}} 後重試。",
     "biometricPrompt": "解鎖 Voltz",
     "saveFailed": "無法在這部裝置上儲存你的 PIN。請再試一次。",
+    "checkFailed": "無法在這部裝置上確認你的 PIN。請再試一次。",
     "forgot": "忘記 PIN 了？",
     "forgotTitle": "抹除錢包後重新進入？",
     "forgotBody": "PIN 無法恢復。重新進入的唯一方法是抹除這部裝置上的所有錢包，再用各自的恢復短語恢復。沒有恢復短語，錢包及其全部資金將永遠遺失。",

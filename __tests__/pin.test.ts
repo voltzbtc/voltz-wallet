@@ -4,12 +4,8 @@ import {
   savePin,
   verifyPin,
   hasPin,
-  deletePin,
-  enterPin,
-  pinWaitLeft,
   waitAfter,
   FREE_ATTEMPTS,
-  forgetPinWaitForTests,
 } from '../src/wallet/pin'
 
 describe('validatePinFormat', () => {
@@ -102,13 +98,26 @@ describe('typing a PIN on the keypad', () => {
   const FAILURES = 'com.voltz.wallet.pin.failures'
   const keychain = new Map<string, string>()
   let steady = 1_000
+  // The module as one process holds it: what it read of the count and the wait it runs. Each test
+  // starts a process of its own over the Keychain the test keeps, and a test that restarts the app
+  // starts another over the same Keychain.
+  let pin: typeof import('../src/wallet/pin')
+  const newProcess = (): void => {
+    jest.isolateModules(() => {
+      // The Keychain outlives the process, so the new one is handed the same.
+      jest.doMock('react-native-keychain', () => Keychain)
+      pin = require('../src/wallet/pin')
+    })
+  }
+  const enterPin = (typed: string) => pin.enterPin(typed)
+  const pinWaitLeft = () => pin.pinWaitLeft()
 
   beforeEach(() => {
     jest.clearAllMocks()
     keychain.clear()
     keychain.set(PIN, '123456')
     steady = 1_000
-    forgetPinWaitForTests()
+    newProcess()
     jest.spyOn(performance, 'now').mockImplementation(() => steady)
     jest.mocked(Keychain.getGenericPassword).mockImplementation(async options => {
       const password = keychain.get(options?.service ?? '')
@@ -144,12 +153,13 @@ describe('typing a PIN on the keypad', () => {
     const compared = () =>
       jest.mocked(Keychain.getGenericPassword).mock.calls.filter(([options]) => options?.service === PIN).length
     const before = compared()
-    const answers = await Promise.all(['000000', '000001', '000002', '123456'].map(pin => enterPin(pin)))
+    const answers = await Promise.all(['000000', '000001', '000002', '123456'].map(typed => enterPin(typed)))
+    // The first is compared; the three behind it meet the wait it started and are never read.
     expect(answers).toEqual([
       { ok: false, waitMs: 30_000 },
-      { ok: false, waitMs: 30_000 },
-      { ok: false, waitMs: 30_000 },
-      { ok: false, waitMs: 30_000 },
+      { ok: false, waitMs: 30_000, waiting: true },
+      { ok: false, waitMs: 30_000, waiting: true },
+      { ok: false, waitMs: 30_000, waiting: true },
     ])
     expect(compared() - before).toBe(1)
     expect(keychain.get(FAILURES)).toBe('5')
@@ -167,7 +177,7 @@ describe('typing a PIN on the keypad', () => {
     await wrongTimes(4)
     expect(await enterPin('000000')).toEqual({ ok: false, waitMs: 30_000 })
     const reads = jest.mocked(Keychain.getGenericPassword).mock.calls.length
-    expect(await enterPin('123456')).toEqual({ ok: false, waitMs: 30_000 })
+    expect(await enterPin('123456')).toEqual({ ok: false, waitMs: 30_000, waiting: true })
     // Refused before anything was compared or counted.
     expect(jest.mocked(Keychain.getGenericPassword).mock.calls.length).toBe(reads)
     expect(keychain.get(FAILURES)).toBe('5')
@@ -188,13 +198,13 @@ describe('typing a PIN on the keypad', () => {
     await wrongTimes(5)
     jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 24 * 60 * 60_000)
     expect(await pinWaitLeft()).toBe(30_000)
-    expect(await enterPin('123456')).toEqual({ ok: false, waitMs: 30_000 })
+    expect(await enterPin('123456')).toEqual({ ok: false, waitMs: 30_000, waiting: true })
   })
 
   it('is not shortened by closing the app: a new process waits the whole wait again', async () => {
     await wrongTimes(5)
     steady += 20_000
-    forgetPinWaitForTests()
+    newProcess()
     expect(await pinWaitLeft()).toBe(30_000)
   })
 
@@ -217,7 +227,89 @@ describe('typing a PIN on the keypad', () => {
 
   it('starts the next PIN with no wrong attempts behind it once the PIN is erased', async () => {
     await wrongTimes(5)
-    await deletePin()
+    await pin.deletePin()
+    expect(keychain.has(FAILURES)).toBe(false)
+    expect(await pinWaitLeft()).toBe(0)
+  })
+
+  // A Keychain that keeps failing on the count would otherwise reject every check, the right PIN's
+  // included, and leave the keypad with six dots and nothing said.
+  describe('when the Keychain fails on the count', () => {
+    const unavailable = new Error('keystore unavailable')
+    const failReads = (): void => {
+      const real = jest.mocked(Keychain.getGenericPassword).getMockImplementation()!
+      jest.mocked(Keychain.getGenericPassword).mockImplementation(async options => {
+        if (options?.service === FAILURES) {
+          throw unavailable
+        }
+        return real(options)
+      })
+    }
+    const failWrites = (): void => {
+      const real = jest.mocked(Keychain.setGenericPassword).getMockImplementation()!
+      jest.mocked(Keychain.setGenericPassword).mockImplementation(async (user, password, options) => {
+        if (options?.service === FAILURES) {
+          throw unavailable
+        }
+        return real(user, password, options)
+      })
+    }
+
+    beforeEach(() => {
+      jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+    })
+
+    it('counts in memory when the count cannot be written, so the wait still comes, and the right PIN opens', async () => {
+      failWrites()
+      expect(await enterPin('123456')).toEqual({ ok: true })
+      await wrongTimes(4)
+      expect(await enterPin('000000')).toEqual({ ok: false, waitMs: 30_000 })
+      expect(await enterPin('123456')).toEqual({ ok: false, waitMs: 30_000, waiting: true })
+      steady += 30_000
+      expect(await enterPin('123456')).toEqual({ ok: true })
+      expect(keychain.has(FAILURES)).toBe(false)
+    })
+
+    it('waits as the first wait does when the count cannot be read, then opens with the right PIN', async () => {
+      keychain.set(FAILURES, '2')
+      failReads()
+      expect(await pinWaitLeft()).toBe(30_000)
+      expect(await enterPin('123456')).toEqual({ ok: false, waitMs: 30_000, waiting: true })
+      steady += 30_000
+      expect(await enterPin('000000')).toEqual({ ok: false, waitMs: 60_000 })
+      steady += 60_000
+      expect(await enterPin('123456')).toEqual({ ok: true })
+    })
+
+    it('opens with the right PIN when the count cannot be cleared', async () => {
+      await wrongTimes(2)
+      jest.mocked(Keychain.resetGenericPassword).mockRejectedValue(unavailable)
+      expect(await enterPin('123456')).toEqual({ ok: true })
+      // The process holds the cleared count, so five wrong PINs still come before a wait.
+      await wrongTimes(4)
+      expect(await pinWaitLeft()).toBe(0)
+    })
+  })
+
+  // A biometric unlock clears the count while a typed PIN may still be in its check, which has read
+  // the count and would write its own after the clear.
+  it('clears the count after a check already under way, never before it', async () => {
+    await wrongTimes(4)
+    const real = jest.mocked(Keychain.getGenericPassword).getMockImplementation()!
+    let release!: () => void
+    const held = new Promise<void>(resolve => (release = resolve))
+    jest.mocked(Keychain.getGenericPassword).mockImplementation(async options => {
+      if (options?.service === PIN) {
+        await held
+      }
+      return real(options)
+    })
+    const check = enterPin('000000')
+    await new Promise(resolve => setTimeout(resolve, 0))
+    const clear = pin.clearPinFailures()
+    release()
+    expect(await check).toEqual({ ok: false, waitMs: 30_000 })
+    await clear
     expect(keychain.has(FAILURES)).toBe(false)
     expect(await pinWaitLeft()).toBe(0)
   })
