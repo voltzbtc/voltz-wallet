@@ -57,6 +57,23 @@ Then check the change against the rules the tools enforce only in part:
 - Anything that depends on a device (native modules, the Keychain, rendering, a live SDK connection)
   says in the pull request whether it was run on a device or simulator, and on which platform.
 
+## Design
+
+The app's screens and components are drawn in a Figma file anyone with the link can open,
+[Voltz Wallet, design system e app](https://www.figma.com/design/HHYuNcpckPu4KfZyDtYkzf). Its variables
+carry the names of the tokens in `src/theme.ts` (`color/surface` is `colors.surface`, `space/lg` is
+`space.lg`), its text styles follow the roles of `Txt`, and its components carry the names of those in
+`src/components`, each description naming the code it mirrors. The file draws text in Inter in place
+of the platform fonts, so type is measured in the app.
+
+- A new screen or a layout change is designed in the file first, from the library's components. A
+  piece that will repeat becomes a component before it goes into a screen.
+- The code then follows the design, and the pull request links the Figma frame next to the before
+  and after photos.
+- A small fix (copy, spacing, a bug) may go straight to code. A pull request that changes a screen in
+  code updates the file too, so the two never drift apart.
+- Where the file and the code disagree, the code is the source of truth.
+
 ## Photos of a visual change
 
 A change that touches a screen attaches a before and an after photo of that screen, on Android and

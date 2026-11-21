@@ -5,6 +5,10 @@ derives from the [Apple Human Interface
 Guidelines](https://developer.apple.com/design/human-interface-guidelines/layout). The tokens live in
 `src/theme.ts`, and a spacing or radius number is never hardcoded in a screen.
 
+The Figma file linked from [CONTRIBUTING.md](../CONTRIBUTING.md#design) draws these tokens as variables
+of the same names and is the visual reference; when it and this document or `src/theme.ts` differ, the
+code is right.
+
 ## Spacing (8pt grid)
 
 `space` in `theme.ts`. Every margin and padding comes from here, never a loose number.
