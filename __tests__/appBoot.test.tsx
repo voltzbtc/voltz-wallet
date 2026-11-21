@@ -15,6 +15,9 @@ import { disconnectSpark } from '../src/wallet/spark'
 jest.mock('../src/wallet/wallet', () => ({
   settleActiveWallet: jest.fn(),
   onActiveWalletChanged: () => () => undefined,
+  // What the erase sheet reads when it opens.
+  countUnconfirmedWallets: jest.fn(async () => 0),
+  eraseAllWallets: jest.fn(async () => undefined),
 }))
 jest.mock('../src/wallet/pin', () => ({ hasPin: jest.fn(), savePin: jest.fn() }))
 jest.mock('../src/wallet/walletRegistry', () => ({ getActiveWalletId: jest.fn() }))
@@ -177,4 +180,43 @@ test('a boot that throws offers Try again, which runs the boot once more however
   expect(loadDollarMode).toHaveBeenCalledWith('w7')
   expect(tree.root.findAll(node => node.props.label === retry)).toHaveLength(0)
   warn.mockRestore()
+})
+
+// An Android phone that received the app's files from another phone has the Keychain's ciphertexts
+// but not the Keystore keys, so the PIN read rejects with E_CRYPTO_FAILED on every boot. That code can
+// also come from a passing Keystore fault, so the boot moves nothing on it: it says what happened and
+// offers the erase a person takes on purpose, behind the device check, rather than open Welcome over a
+// seed that may read again.
+describe('a boot whose Keychain entries no key here can open', () => {
+  const texts = (tree: ReactTestRenderer.ReactTestRenderer): string[] =>
+    tree.root.findAll(node => typeof node.props.children === 'string').map(node => node.props.children)
+
+  test('says the wallets cannot be opened here and offers erase and restore, never Welcome', async () => {
+    jest.mocked(hasPin).mockRejectedValueOnce(Object.assign(new Error('Decryption failed'), { code: 'E_CRYPTO_FAILED' }))
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const tree = await boot()
+
+    expect(texts(tree)).toContain(i18n.t('welcome.bootUnreadable'))
+    expect(texts(tree)).not.toContain(i18n.t('welcome.create'))
+    const [restore] = tree.root.findAll(
+      node =>
+        typeof node.props.onPress === 'function' &&
+        node.findAll(child => child.props.children === i18n.t('welcome.bootRestore')).length > 0,
+    )
+    await ReactTestRenderer.act(async () => {
+      restore.props.onPress()
+    })
+    expect(texts(tree)).toContain(i18n.t('pin.unreadableBody'))
+    warn.mockRestore()
+  })
+
+  test('any other failure keeps the plain message and no erase', async () => {
+    jest.mocked(hasPin).mockRejectedValueOnce(Object.assign(new Error('busy'), { code: 'E_KEYSTORE_ACCESS_ERROR' }))
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const tree = await boot()
+
+    expect(texts(tree)).toContain(i18n.t('welcome.bootFailed'))
+    expect(texts(tree)).not.toContain(i18n.t('welcome.bootRestore'))
+    warn.mockRestore()
+  })
 })

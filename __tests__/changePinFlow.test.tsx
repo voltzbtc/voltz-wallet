@@ -5,11 +5,16 @@ import i18n from '../src/i18n'
 import { ChangePinFlow } from '../src/navigation/RootNavigator'
 import { verifyPin } from '../src/wallet/pin'
 
-jest.mock('../src/wallet/pin', () => ({
-  verifyPin: jest.fn(),
-  hasPin: jest.fn(),
-  savePin: jest.fn(),
-}))
+// The keypad's check, over the comparison each case decides, with no wrong-PIN wait.
+jest.mock('../src/wallet/pin', () => {
+  const compare = jest.fn()
+  return {
+    hasPin: jest.fn(), savePin: jest.fn(), verifyPin: compare,
+    enterPin: jest.fn(async (pin: string) => ((await compare(pin)) ? { ok: true } : { ok: false, waitMs: 0 })),
+    pinWaitLeft: jest.fn(async () => 0),
+    clearPinFailures: jest.fn(async () => undefined),
+  }
+})
 
 async function flush(): Promise<void> {
   await ReactTestRenderer.act(async () => {

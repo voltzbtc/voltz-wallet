@@ -89,8 +89,20 @@ describe('the code a person reads out loud', () => {
     expect(walletCode(GUEST)).not.toEqual(walletCode(swapped))
   })
 
-  it('is short enough to compare by eye', () => {
-    expect(walletCode(GUEST)).toMatch(/^[0-9A-F]{4} [0-9A-F]{4}$/)
+  it('is twelve characters a person can read aloud, in three groups', () => {
+    // Crockford's base32, without I, L, O and U.
+    expect(walletCode(GUEST)).toMatch(/^[0-9A-HJKMNP-TV-Z]{4} [0-9A-HJKMNP-TV-Z]{4} [0-9A-HJKMNP-TV-Z]{4}$/)
+  })
+
+  it('is the first 60 bits of SHA-256 over the key, so a swapped key cannot be ground to match', () => {
+    // Computed apart from this code: sha256 of the lowercase hex, first eight bytes shifted right by
+    // four, in Crockford's base32. A 32-bit code fell to a few hours of grinding keys on a CPU.
+    expect(walletCode(GUEST)).toBe('FBD2 M4DZ 3AGZ')
+    expect(walletCode(OWNER)).toBe('8NN3 29M1 59AZ')
+  })
+
+  it('draws a code for text that is not a key rather than throwing in a render', () => {
+    expect(walletCode('not a key')).toMatch(/^\S{4} \S{4} \S{4}$/)
   })
 })
 

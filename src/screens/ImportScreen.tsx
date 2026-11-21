@@ -8,6 +8,7 @@ import { fingerprintFromMnemonicAsync } from '../wallet/fingerprint'
 import { formatFingerprint } from '../wallet/walletIdentity'
 import { splitPhrase, suggestWords, isWordlistWord } from '../wallet/mnemonicInput'
 import { SegmentedControl } from '../components/SegmentedControl'
+import { revealedKeyboard } from '../components/PassphraseField'
 import { GradientButton } from '../components/GradientButton'
 import { TabIcon } from '../components/TabIcon'
 import { colors, radius, space } from '../theme'
@@ -354,6 +355,7 @@ export function ImportScreen({ onImported, onBack, initial, above, headerTitled 
           // carry the passphrase to iCloud Keychain; iOS 26.5 does not offer a one-time code field.
           textContentType="oneTimeCode"
           importantForAutofill="no"
+          keyboardType={revealedKeyboard(reveal)}
           style={styles.passField}
           trailing={
             <Touch

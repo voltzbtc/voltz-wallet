@@ -5,13 +5,18 @@ import * as Keychain from 'react-native-keychain'
 import i18n from '../src/i18n'
 import { EnableBiometricsFlow } from '../src/navigation/RootNavigator'
 
-jest.mock('../src/wallet/pin', () => ({
-  verifyPin: jest.fn(async () => true),
-  hasPin: jest.fn(),
-  savePin: jest.fn(),
-}))
+// The keypad's check, over the comparison each case decides, with no wrong-PIN wait.
+jest.mock('../src/wallet/pin', () => {
+  const compare = jest.fn(async (_pin: string) => true)
+  return {
+    hasPin: jest.fn(), savePin: jest.fn(), verifyPin: compare,
+    enterPin: jest.fn(async (pin: string) => ((await compare(pin)) ? { ok: true } : { ok: false, waitMs: 0 })),
+    pinWaitLeft: jest.fn(async () => 0),
+    clearPinFailures: jest.fn(async () => undefined),
+  }
+})
 
-const BIO_SERVICE = 'com.voltz.wallet.biometric'
+const BIO_SERVICE = 'com.voltz.wallet.biometric.currentSet'
 const keychain = new Map<string, string>()
 let write: 'ok' | 'cancel' = 'ok'
 
