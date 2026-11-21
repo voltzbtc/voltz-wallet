@@ -174,6 +174,21 @@ describe('randomUsername', () => {
     const names = new Set(Array.from({ length: 20 }, () => randomUsername()))
     expect(names.size).toBeGreaterThan(1)
   })
+
+  it('refuses a draw that fell back to Math.random', () => {
+    const spy = jest.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation(array => {
+      const view = array as Uint8Array
+      for (let i = 0; i < view.length; i += 1) {
+        view[i] = Math.floor(Math.random() * 256)
+      }
+      return array
+    })
+    try {
+      expect(() => randomUsername()).toThrow('non-crypto RNG')
+    } finally {
+      spy.mockRestore()
+    }
+  })
 })
 
 // The gateway gives away the generated address for free and charges for a chosen one. It tells them

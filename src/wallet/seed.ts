@@ -1,27 +1,21 @@
-import 'react-native-get-random-values'
 import { Buffer } from 'buffer'
 import * as bip39 from 'bip39'
 import { sha256 } from '@noble/hashes/sha2.js'
 import * as Keychain from 'react-native-keychain'
+import { secureBytes } from './secureRandom'
 
 const SERVICE = 'com.voltz.wallet.seed'
 
 export type MnemonicLength = 12 | 24
 
-// Failing loudly keeps a missing react-native-get-random-values polyfill from becoming a weak seed.
-function assertRngAvailable(): void {
-  if (typeof globalThis.crypto?.getRandomValues !== 'function') {
-    throw new Error('refusing to generate a seed: crypto.getRandomValues is unavailable')
-  }
-}
-
 // react-native-get-random-values decodes the native base64 with no length check, so a truncated
 // response leaves the tail at 0x00. A healthy draw ends in four zero bytes with probability 2^-32.
 const ZERO_TAIL_LIMIT = 4
 
+// A missing polyfill, or one that falls back to Math.random, throws in secureBytes rather than
+// become a weak seed.
 function drawEntropy(size: number): Buffer {
-  const bytes = new Uint8Array(size)
-  globalThis.crypto.getRandomValues(bytes)
+  const bytes = secureBytes(size, 'a seed')
   let zeroTail = 0
   while (zeroTail < bytes.length && bytes[bytes.length - 1 - zeroTail] === 0) {
     zeroTail += 1
@@ -32,29 +26,8 @@ function drawEntropy(size: number): Buffer {
   return Buffer.from(bytes)
 }
 
-// A substituted getRandomValues that falls back to Math.random still passes assertRngAvailable,
-// since the function exists, so generation watches Math.random and rejects a seed that touched it.
-function generateWatchingSource(strength: 128 | 256): string {
-  const realRandom = Math.random
-  let weakSourceUsed = false
-  Math.random = () => {
-    weakSourceUsed = true
-    return realRandom()
-  }
-  try {
-    const mnemonic = bip39.generateMnemonic(strength, drawEntropy)
-    if (weakSourceUsed) {
-      throw new Error('refusing to generate a seed: entropy fell back to a non-crypto RNG')
-    }
-    return mnemonic
-  } finally {
-    Math.random = realRandom
-  }
-}
-
 export function generateMnemonic(length: MnemonicLength = 12): string {
-  assertRngAvailable()
-  return generateWatchingSource(length === 24 ? 256 : 128)
+  return bip39.generateMnemonic(length === 24 ? 256 : 128, drawEntropy)
 }
 
 // A fair d6 carries log2(6) ~= 2.585 bits, so 50 rolls clear the 128 bits of 12 words and 99 fall

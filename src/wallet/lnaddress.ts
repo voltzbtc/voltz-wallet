@@ -1,3 +1,4 @@
+import { secureBytes } from './secureRandom'
 import type { SparkDestinationKind } from './spark'
 
 // Non-custodial LN Address. The server (breez-lnurl) stores only a username -> device pubkey
@@ -236,8 +237,7 @@ export const USERNAME_ANIMALS = [
 
 // The SDK assigns no LN address, so the wallet claims a random valid one and renames later.
 export function randomUsername(): string {
-  const bytes = new Uint8Array(3)
-  crypto.getRandomValues(bytes)
+  const bytes = secureBytes(3, 'a lightning name')
   const adjective = USERNAME_ADJECTIVES[bytes[0] % USERNAME_ADJECTIVES.length]
   const animal = USERNAME_ANIMALS[bytes[1] % USERNAME_ANIMALS.length]
   const number = 10 + (bytes[2] % 90) // 10-99, always two digits
