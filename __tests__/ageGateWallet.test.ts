@@ -1,6 +1,6 @@
 import RNFS from 'react-native-fs'
 import * as Keychain from 'react-native-keychain'
-import { addAndActivateWallet, addFirstWallet, isWalletAlreadyAdded } from '../src/wallet/wallet'
+import { addAndActivateWallet, addFirstWallet, eraseAllWallets, isWalletAlreadyAdded, removeWalletById } from '../src/wallet/wallet'
 import { __resetAgeSignalForTests, isAgeRefusal } from '../src/wallet/ageSignal'
 import { loadRegistry } from '../src/wallet/walletRegistry'
 
@@ -12,6 +12,8 @@ jest.mock('../src/wallet/spark', () => ({
   connectSpark: jest.fn(),
   disconnectSpark: jest.fn(async () => undefined),
   disconnectSparkWhenIdle: jest.fn(async () => undefined),
+  sparkEraseLocalData: jest.fn(async () => undefined),
+  whileSparkErasing: jest.fn(async (erase: () => Promise<void>) => erase()),
   SparkReconnectBusy: class extends Error {},
 }))
 
@@ -40,7 +42,16 @@ beforeEach(() => {
   })
   jest.mocked(Keychain.hasGenericPassword).mockImplementation(async options => keychain.has(options?.service ?? ''))
   jest.mocked(Keychain.resetGenericPassword).mockImplementation(async options => keychain.delete(options?.service ?? ''))
+  jest.mocked(Keychain.getAllGenericPasswordServices).mockImplementation(async () => [...keychain.keys()])
 })
+
+const refusedFor = (add: Promise<unknown>) => add.then(() => false, (err: unknown) => isAgeRefusal(err))
+
+// A minor's verdict, heard fresh, as on the launch after whatever came before.
+function minorFromNowOn(): void {
+  __resetAgeSignalForTests()
+  store.shares(13, 15)
+}
 
 describe.each([
   ['addFirstWallet', (words: string) => addFirstWallet(words, undefined, 'typed')],
@@ -101,5 +112,60 @@ describe('a wallet already here', () => {
     expect(isAgeRefusal(refused)).toBe(true)
     expect(seeds()).toHaveLength(1)
     expect((await loadRegistry()).wallets).toHaveLength(1)
+  })
+})
+
+// A wallet this device held is not new either: Forgot PIN and Erase and restore promise its words
+// bring it back, and a backup can carry the list to a phone the seed never reached.
+describe('a wallet this device held', () => {
+  test('comes back from its words after the erase', async () => {
+    await addFirstWallet(WORDS, undefined, 'typed')
+    await eraseAllWallets()
+    expect(seeds()).toEqual([])
+    minorFromNowOn()
+    await addFirstWallet(WORDS, undefined, 'typed')
+    expect(seeds()).toHaveLength(1)
+  })
+
+  test('the erase brings back only the wallets it erased', async () => {
+    await addFirstWallet(WORDS, undefined, 'typed')
+    await eraseAllWallets()
+    minorFromNowOn()
+    expect(await refusedFor(addFirstWallet(OTHER, undefined, 'typed'))).toBe(true)
+    expect(seeds()).toEqual([])
+  })
+
+  test('comes back after Remove wallet', async () => {
+    await addFirstWallet(WORDS, undefined, 'typed')
+    const second = await addAndActivateWallet(OTHER, undefined, 'typed')
+    const { wallets } = await loadRegistry()
+    await removeWalletById(second, wallets.find(w => w.id === second)!.fingerprint)
+    minorFromNowOn()
+    await addAndActivateWallet(OTHER, undefined, 'typed')
+    expect(seeds()).toHaveLength(2)
+  })
+
+  test('comes back when a backup carried the list and not the seed', async () => {
+    const fingerprint = await addFirstWallet(WORDS, undefined, 'typed').then(async id => {
+      const { wallets } = await loadRegistry()
+      return wallets.find(w => w.id === id)!.fingerprint
+    })
+    keychain.clear()
+    await RNFS.unlink(`${RNFS.DocumentDirectoryPath}/held-wallets.json`).catch(() => undefined)
+    await RNFS.writeFile(
+      `${RNFS.DocumentDirectoryPath}/wallets.json`,
+      JSON.stringify({ active: 'w_lost', wallets: [{ id: 'w_lost', fingerprint }] }),
+      'utf8',
+    )
+    minorFromNowOn()
+    expect(await addFirstWallet(WORDS, undefined, 'typed')).toBe('w_lost')
+  })
+
+  test('a held list that cannot be read brings nothing back', async () => {
+    await addFirstWallet(WORDS, undefined, 'typed')
+    await eraseAllWallets()
+    await RNFS.writeFile(`${RNFS.DocumentDirectoryPath}/held-wallets.json`, '["0123', 'utf8')
+    minorFromNowOn()
+    expect(await refusedFor(addFirstWallet(WORDS, undefined, 'typed'))).toBe(true)
   })
 })

@@ -13,6 +13,7 @@ Range on iOS.
 | `android/app/src/main/java/app/usevoltz/age/` | Play Age Signals 0.0.6, pinned in `android/gradle/verification-metadata.xml` |
 | `ios/VoltzWallet/Age/` | Declared Age Range, weak linked (`-weak_framework DeclaredAgeRange`) so iOS below 26 still launches |
 | `src/wallet/ageSignal.ts` | The one reader: asks once, reduces the answer to a verdict, and holds it in memory |
+| `src/wallet/heldWallets.ts` | The fingerprints of wallets removed from this device, which the gate lets back |
 | `src/hooks/useMinorSignal.ts` | Whether the verdict is a minor's, for the screens that gate |
 | `src/components/AdultsOnly.tsx` | What replaces the ways to a new wallet |
 
@@ -35,8 +36,11 @@ Range on iOS.
 ## What a minor's verdict stops
 
 - A new wallet: `addFirstWallet` and `addAndActivateWallet` in `wallet.ts` throw `AgeRefusal` before
-  anything is written. The same words as a wallet already on the device are not a new wallet and go
-  on. Welcome and Add wallet draw `AdultsOnly` in place of every step before the write.
+  anything is written. A wallet this device holds or held is not new and goes on: one `wallets.json`
+  lists (with its seed, or without it after a backup carried the list), and one removed here, by
+  Remove wallet or by the erase behind Forgot PIN and Erase and restore, whose fingerprints
+  `heldWallets.ts` keeps so those sheets' promise of a restore holds. Welcome and Add wallet draw
+  `AdultsOnly` in place of every step before the write.
 - A store purchase: `buyInStore` answers `{ kind: 'adultsOnly' }` before any order is opened, and the
   name and domain screens say so.
 

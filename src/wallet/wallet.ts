@@ -23,6 +23,7 @@ import {
 } from './seed'
 import { fingerprintFromMnemonicAsync } from './fingerprint'
 import { refuseMinor } from './ageSignal'
+import { noteHeld, wasHeld } from './heldWallets'
 import { deleteWalletImage } from './walletImage'
 import { carryWalletMeta } from './walletMeta'
 import { clearDeletionMark, clearImportCheck, noteImportCheck } from './deletionMark'
@@ -135,6 +136,17 @@ async function lostEntryWith(wallets: readonly WalletEntry[], fingerprint: strin
   return undefined
 }
 
+// A wallet this device holds or held is not a new one, so its words go on whatever the store's age
+// signal says: one the list names (with its seed, or without it after a backup carried the list), and
+// one removed here, the erase behind Forgot PIN included (heldWallets.ts). Any other wallet is refused
+// with AgeRefusal when the signal says the person is under 18 (ageSignal.ts).
+async function refuseNewForMinor(wallets: readonly WalletEntry[], fingerprint: string): Promise<void> {
+  if (wallets.some(w => w.fingerprint === fingerprint) || (await wasHeld(fingerprint))) {
+    return
+  }
+  await refuseMinor()
+}
+
 // Where a wallet's words came from, which decides what the add owes them.
 //   drawn            shown on screen, with nothing proving they were kept
 //   confirmed        a dice phrase that passed its confirmation before the add
@@ -191,8 +203,8 @@ async function saveSeedMarked(
 // The same words and passphrase as a wallet already here are refused with WalletAlreadyAdded before
 // anything is written. The same words with another passphrase are another wallet and are added.
 //
-// A wallet not on the device is refused with AgeRefusal when the store's age signal says the person is
-// under 18 (ageSignal.ts), before anything is written. One already here is not new, and goes on.
+// A wallet this device never held is refused with AgeRefusal when the store's age signal says the
+// person is under 18, before anything is written (refuseNewForMinor).
 //
 // `origin` left out counts the words as shown and not proved, the safe side for a caller that forgets it.
 export async function addAndActivateWallet(
@@ -208,7 +220,7 @@ export async function addAndActivateWallet(
   if (twin) {
     throw new WalletAlreadyAdded(twin.id, twin.fingerprint)
   }
-  await refuseMinor()
+  await refuseNewForMinor(wallets, fingerprint)
   const id = (await lostEntryWith(wallets, fingerprint)) ?? newWalletId()
   await savePassphraseFor(id, passphrase ?? '')
   await saveSeedMarked(id, mnemonic, origin, fingerprint, note)
@@ -228,8 +240,8 @@ export async function addAndActivateWallet(
 // Keychain entry predates the registry, goes only to a registry with no wallet in it, and any other
 // wallet takes an id of its own rather than inheriting a lost wallet's records or slot. The same words
 // on a wallet that does have its seed are this write repeated after failing past its registry line, and
-// keep that line, or one key would be listed twice. Only that repeat goes on past a store's age signal
-// under 18 (ageSignal.ts); any other wallet is refused with AgeRefusal before anything is written.
+// keep that line, or one key would be listed twice. A wallet this device never held is refused with
+// AgeRefusal when the store's age signal says the person is under 18 (refuseNewForMinor).
 //
 // The passphrase is written before the seed. The seed is what makes a wallet exist at boot, so a kill
 // between the two leaves no wallet rather than one that opens without its passphrase, which is a
@@ -245,9 +257,7 @@ export async function addFirstWallet(
   const fingerprint = await fingerprintFromMnemonicAsync(mnemonic, passphrase)
   const { wallets } = await loadRegistry()
   const twin = await presentTwinOf(wallets, fingerprint, mnemonic, passphrase)
-  if (!twin) {
-    await refuseMinor()
-  }
+  await refuseNewForMinor(wallets, fingerprint)
   const id =
     twin?.id ?? (await lostEntryWith(wallets, fingerprint)) ?? (wallets.length === 0 ? PRIMARY_ID : newWalletId())
   await savePassphraseFor(id, passphrase ?? '')
@@ -432,6 +442,11 @@ export async function settleActiveWallet(): Promise<boolean> {
 // Its purchase proofs are kept, since they stand for money paid. Its unconfirmed mark goes after the
 // seed: a removal that fails before that leaves the wallet here, and a wallet still here keeps its mark.
 export async function removeWallet(id: string, fingerprint: string): Promise<void> {
+  // Before the seed goes, so a removal cut in the middle leaves the words able to come back past the
+  // age gate. A note that fails costs only that, and never stops the removal.
+  await noteHeld(fingerprint).catch((err: unknown) => {
+    console.warn(`held wallet not noted on removal: ${(err as Error)?.message ?? String(err)}`)
+  })
   await clearDeletionMark(id).catch((err: unknown) => {
     console.warn(`deletion mark not cleared on removal: ${(err as Error)?.message ?? String(err)}`)
   })
