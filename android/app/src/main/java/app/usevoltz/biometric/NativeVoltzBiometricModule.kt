@@ -15,6 +15,7 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.UiThreadUtil
 import java.security.KeyStore
+import javax.crypto.AEADBadTagException
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -50,28 +51,44 @@ class NativeVoltzBiometricModule(reactContext: ReactApplicationContext) : Native
   override fun reveal(title: String, cancel: String, promise: Promise) {
     val iv = prefs().getString(IV, null)
     val sealed = prefs().getString(SEALED, null)
-    val key = runCatching { keyStore().getKey(ALIAS, null) as? SecretKey }.getOrNull()
-    if (iv == null || sealed == null || key == null) {
+    if (iv == null || sealed == null) {
       clear()
       promise.resolve(null)
       return
     }
     val cipher =
       try {
+        // null when no key is kept under the alias, which leaves no entry.
+        val key = keyStore().getKey(ALIAS, null) as? SecretKey
+        if (key == null) {
+          clear()
+          promise.resolve(null)
+          return
+        }
         Cipher.getInstance(TRANSFORMATION).apply {
           init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(TAG_BITS, Base64.decode(iv, Base64.NO_WRAP)))
         }
-      } catch (error: KeyPermanentlyInvalidatedException) {
-        // A biometric was enrolled or removed since the entry was written.
-        clear()
-        promise.reject(INVALIDATED, error.message, error)
-        return
       } catch (error: Exception) {
-        promise.reject(FAILED, error.message, error)
+        // Only a key the platform invalidated (a biometric enrolled or removed since the entry was
+        // written) ends the entry. Any other Keystore failure can pass, so the entry stays for the
+        // next unlock.
+        if (invalidated(error)) {
+          clear()
+          promise.reject(INVALIDATED, error.message, error)
+        } else {
+          promise.reject(FAILED, error.message, error)
+        }
         return
       }
     authenticate(cipher, title, cancel, promise) { authed ->
-      promise.resolve(String(authed.doFinal(Base64.decode(sealed, Base64.NO_WRAP)), Charsets.UTF_8))
+      try {
+        promise.resolve(String(authed.doFinal(Base64.decode(sealed, Base64.NO_WRAP)), Charsets.UTF_8))
+      } catch (error: AEADBadTagException) {
+        // An enroll whose prompt was cancelled made a new key over the old entry, whose sealed bytes
+        // no key opens again, so the entry ends as an invalidated one does.
+        clear()
+        promise.reject(INVALIDATED, error.message, error)
+      }
     }
   }
 
@@ -99,6 +116,12 @@ class NativeVoltzBiometricModule(reactContext: ReactApplicationContext) : Native
       return
     }
     UiThreadUtil.runOnUiThread {
+      // BiometricPrompt drops a prompt asked for after the activity saved its state, with no callback,
+      // so the promise and the own-activity bracket around it would wait for good.
+      if (activity.supportFragmentManager.isStateSaved) {
+        promise.reject(UNAVAILABLE, "the app is not in front to show the prompt")
+        return@runOnUiThread
+      }
       val callback =
         object : BiometricPrompt.AuthenticationCallback() {
           override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
@@ -164,6 +187,10 @@ class NativeVoltzBiometricModule(reactContext: ReactApplicationContext) : Native
     }
   }
 
+  // Whether a failure says the key is gone for good, as the exception itself or as its cause.
+  private fun invalidated(error: Throwable): Boolean =
+    generateSequence(error) { it.cause }.take(MAX_CAUSES).any { it is KeyPermanentlyInvalidatedException }
+
   private fun clear() {
     prefs().edit().clear().commit()
     runCatching { keyStore().run { if (containsAlias(ALIAS)) deleteEntry(ALIAS) } }
@@ -184,6 +211,7 @@ class NativeVoltzBiometricModule(reactContext: ReactApplicationContext) : Native
     private const val TRANSFORMATION = "AES/GCM/NoPadding"
     private const val KEY_BITS = 256
     private const val TAG_BITS = 128
+    private const val MAX_CAUSES = 8
     private const val CANCELLED = "E_CANCELLED"
     private const val INVALIDATED = "E_INVALIDATED"
     private const val UNAVAILABLE = "E_UNAVAILABLE"

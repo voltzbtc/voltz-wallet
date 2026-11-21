@@ -5,7 +5,7 @@ import i18n from '../src/i18n'
 import { PinScreen } from '../src/screens/PinScreen'
 import { DollarModeProvider } from '../src/wallet/dollarMode'
 import { TabIcon } from '../src/components/TabIcon'
-import { unlockWithBiometrics } from '../src/wallet/biometrics'
+import { isBiometricUnlockEnabled, unlockWithBiometrics } from '../src/wallet/biometrics'
 import { clearPinFailures, enterPin, pinWaitLeft, verifyPin } from '../src/wallet/pin'
 import { colors, textScale } from '../src/theme'
 
@@ -490,6 +490,30 @@ describe('a biometric success', () => {
   })
 })
 
+// An entry whose key a new enrollment invalidated is removed by the unlock that finds it, after the
+// keypad read it as on, and the key would then prompt for nothing.
+describe('a biometric entry the unlock found gone', () => {
+  const biometricKeys = (tree: ReactTestRenderer.ReactTestRenderer) =>
+    tree.root.findAll(n => n.props.accessibilityLabel === i18n.t('pin.biometricPrompt'))
+
+  afterEach(() => {
+    jest.mocked(isBiometricUnlockEnabled).mockResolvedValue(true)
+  })
+
+  it('takes the biometric key away', async () => {
+    jest.mocked(isBiometricUnlockEnabled).mockResolvedValueOnce(true).mockResolvedValue(false)
+    const tree = await render(lock())
+    expect(unlockWithBiometrics).toHaveBeenCalled()
+    expect(biometricKeys(tree)).toHaveLength(0)
+  })
+
+  it('keeps it after a no while the entry is still there', async () => {
+    const tree = await render(lock())
+    expect(unlockWithBiometrics).toHaveBeenCalled()
+    expect(biometricKeys(tree).length).toBeGreaterThan(0)
+  })
+})
+
 describe('the way out of a forgotten PIN', () => {
   test('is drawn only where the caller gives it, and a press reaches the caller', async () => {
     const onForgot = jest.fn()
@@ -600,7 +624,7 @@ describe('the wait after too many wrong PINs', () => {
     expect(sequence).not.toHaveBeenCalled()
     expect(allText(tree)).toContain(i18n.t('pin.wait', { time: '0:30' }))
 
-    // The control: a wrong PIN that starts a wait shakes.
+    // A wrong PIN that starts a wait does shake, so the spy can see one.
     jest.mocked(enterPin).mockResolvedValueOnce({ ok: false, waitMs: 30_000 })
     await typeSix(await render(lock()))
     expect(sequence).toHaveBeenCalled()

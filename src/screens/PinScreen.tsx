@@ -291,6 +291,10 @@ export function PinScreen(props: Props): React.JSX.Element {
       return
     }
     if (!(await unlockWithBiometrics(t('pin.biometricPrompt'), t('common.cancel')))) {
+      // An entry the platform invalidated was removed on the way, and its key would prompt for nothing.
+      if (!(await isBiometricUnlockEnabled().catch(() => true))) {
+        setBiometryKind(null)
+      }
       return
     }
     // The owner's biometric ends any run of wrong PINs.
