@@ -122,9 +122,11 @@ async function presentTwinOf(
 // A listed wallet with these words whose seed is not on this device, as on an iPhone restored from
 // another device's backup. Saving the same words again takes its id, so the list keeps one row for the
 // wallet and everything this device keeps under that id (the domain, the remembered address,
-// settings, purchase proofs, deletion marks) stays with it. Different words never match, so they never
-// inherit a lost wallet's records. Only a listed entry with the same fingerprint is asked, and a read
-// that throws propagates before anything is written.
+// settings, purchase proofs, deletion marks) stays with it. The seed is gone, so the words cannot be
+// compared as presentTwinOf does, and the match is the four-byte fingerprint alone: different words
+// take a lost wallet's id, and its records, only on a fingerprint collision, about 1 in 2^32 for each
+// lost entry. Only a listed entry with the same fingerprint is asked, and a read that throws
+// propagates before anything is written.
 async function lostEntryWith(wallets: readonly WalletEntry[], fingerprint: string): Promise<string | undefined> {
   for (const w of wallets) {
     if (w.fingerprint === fingerprint && !(await hasSeedFor(w.id))) {
