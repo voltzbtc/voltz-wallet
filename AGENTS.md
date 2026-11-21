@@ -176,7 +176,10 @@ Each of these breaks something without breaking the suite.
   screen that draws words goes through `useScreenCapture`, which keeps them off the tree until the
   first read answers and while the screen is recorded or mirrored, and takes the confirm with them.
   A screenshot cannot be undone, only asked to be deleted. Android has no such module, so its words
-  are drawn at once.
+  are drawn at once. From API 34 the activity window is also accessibility data sensitive
+  (`MainActivity`), so only services declared as accessibility tools read its text; React Native
+  copies `FLAG_SECURE` into a Modal window but not that mark, so words and passphrases never go in a
+  Modal, which `__tests__/androidActivity.test.ts` holds.
 - **A decoded image is a scanned code.** Text from `src/wallet/qrImage.ts` goes through `submit` in
   `ScanScreen`, never to a confirm, and an image with two different codes answers neither. ML Kit
   comes from VisionCamera's `implementation`, so the app compiles against it with a `compileOnly` at

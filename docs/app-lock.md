@@ -79,6 +79,8 @@ trip at its limit raised no cover on the way out, so `PrivacyCover.onResume` cov
 figure (`OWN_LOCK_AFTER_MS`, which `__tests__/ownActivity.test.ts` holds equal). An activity whose
 bracket never closes leaves every later pause inside the bracket, so every trip is then timed against
 ten minutes and raises no cover on the way out, which is less than the two minute lock and never none.
+That lasts until the activity is destroyed: `PrivacyCover.release` sets the depth back to zero, since a
+destroyed activity gets none of the answers an open bracket waits for.
 
 ## Where the lock lands
 
