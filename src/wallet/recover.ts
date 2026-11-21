@@ -273,11 +273,13 @@ function dueAgain(last: Ask | undefined, nowSecs: number): boolean {
 }
 
 // The address on the charge, never the one the wallet is connected to. The gateway compares the
-// charge's domain against the Host the confirmation arrived on, so a name bought on one domain and
-// confirmed on another is refused as somebody else's purchase.
-function nameDeps(deps: RecoverDeps, charge: PendingCharge) {
+// charge's domain against the domain the confirmation names, so a name bought on one domain and
+// confirmed on another is refused as somebody else's purchase. Sent to the build's domain with the
+// charge's domain in the body, as every name request is (currentDeps), so the domain from the
+// gateway's answer never becomes the host the app connects to.
+function nameDeps(deps: RecoverDeps, build: string, charge: PendingCharge) {
   return {
-    gatewayUrl: `https://${charge.domain}`,
+    gatewayUrl: `https://${build}`,
     domain: charge.domain,
     pubkey: deps.pubkey,
     sign: deps.sign,
@@ -397,7 +399,7 @@ async function finish(
     await forgetDomainAsk(deps.walletId)
     return { ...base, status: 'ready' }
   }
-  const entitled = await confirmName(nameDeps(deps, charge), charge.subject, charge.reference)
+  const entitled = await confirmName(nameDeps(deps, build, charge), charge.subject, charge.reference)
   if (!entitled) {
     return { ...base, status: 'settling' }
   }

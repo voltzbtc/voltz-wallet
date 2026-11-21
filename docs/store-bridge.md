@@ -763,6 +763,14 @@ screen (names) and the domain screen (years).
 
 ## What the app needs from the gateway
 
+Every store, credits, withdrawal and name request goes to the build's domain (`currentDeps`), and the
+domain it is about travels in the signed body as `host`: the order, its confirm, a spend, a quote and
+its confirm. A customer domain's own hostname is the customer's to keep, so whoever answers it after a
+lapse or a DNS change would receive the wallet's signed statements and could answer a confirm with a
+delivery that never happened; a frozen domain is off the edge, so a renewal sent there reached nobody.
+The gateway reads `host` from the body on those five routes (voltz-gateway `src/actedHost.ts`) and
+must be deployed before an app that sends it, or a wallet on its own domain is refused there.
+
 The line above Pay, that the purchase can be cancelled within 14 days here, is the app's own text and
 shows against any gateway. The rest depends on fields of the gateway's answers:
 

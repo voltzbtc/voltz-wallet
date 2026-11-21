@@ -10,13 +10,29 @@ jest.mock('../src/wallet/spark', () => ({
 
 const connected = connectedLnurlDomain as jest.Mock
 
-// The gateway decides free or paid from the Host it is asked on. A wallet whose address lives on a
-// domain it bought must quote against that domain, or it is charged for a name that is free there.
-it('quotes against the domain the session is on, not the build default', async () => {
+// The gateway decides free or paid from the domain the request names. A wallet whose address lives
+// on a domain it bought must quote against that domain, or it is charged for a name that is free
+// there. The request still goes to the build's domain: the customer's own hostname is whoever holds
+// it, and a frozen one reaches nobody.
+it('quotes against the domain the session is on, sent to the build domain', async () => {
   connected.mockReturnValue('pay.bakery.com.br')
   const deps = await currentDeps()
   expect(deps.domain).toBe('pay.bakery.com.br')
-  expect(deps.gatewayUrl).toBe('https://pay.bakery.com.br')
+  expect(deps.gatewayUrl).toBe('https://usevoltz.app')
+})
+
+it('names the domain in the signed body of the quote and of its confirmation', async () => {
+  const sent: Array<{ url: string; body: Record<string, unknown> }> = []
+  const request = (async (url: string, init: { body: string }) => {
+    sent.push({ url, body: JSON.parse(init.body) })
+    return { ok: true, status: 200, json: async () => ({ invoice: 'lnbc1', reference: 'r1', amountSats: 1, expiresAt: 1 }) }
+  }) as unknown as typeof fetch
+  connected.mockReturnValue('pay.bakery.com.br')
+  const deps = { ...(await currentDeps()), request, now: () => 1_700_000_000_000 }
+  await quoteName(deps, 'bakery').catch(() => undefined)
+  await confirmName(deps, 'bakery', 'r1').catch(() => undefined)
+  expect(sent.map(s => s.url)).toEqual(['https://usevoltz.app/api/quote', 'https://usevoltz.app/api/quote/confirm'])
+  expect(sent.map(s => s.body.host)).toEqual(['pay.bakery.com.br', 'pay.bakery.com.br'])
 })
 
 it('falls back to the build domain before a session has one', async () => {

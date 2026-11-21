@@ -35,10 +35,16 @@ export function currentDomain(): string {
 
 // Built from what the app already knows, so a screen does not assemble a credential itself. The
 // signer signs only as the identity read here (identitySigner).
+//
+// Every request goes to the build's domain, and the domain it is about travels in the signed body
+// (`host`), as the name and domain state reads do. A customer domain's own hostname is the customer's
+// to keep: once it lapses or its DNS changes hands, whoever answers there would receive the wallet's
+// signed statements and answer a store confirm or a quote with whatever it likes. A frozen domain is
+// also off the edge, so a renewal sent there reaches nobody.
 export async function currentDeps(): Promise<PurchaseDeps> {
   const domain = currentDomain()
   const { pubkey, sign } = await identitySigner()
-  return { gatewayUrl: `https://${domain}`, domain, pubkey, sign }
+  return { gatewayUrl: `https://${getBreezLnurlDomain() ?? domain}`, domain, pubkey, sign }
 }
 
 // Statement the wallet signs to be quoted a price for a name. The gateway rebuilds its own name
@@ -115,7 +121,7 @@ export async function quoteName(deps: PurchaseDeps, username: string): Promise<N
   const response = await (deps.request ?? fetch)(endpoint(deps.gatewayUrl, '/api/quote'), {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ username, pubkey: deps.pubkey, signature, timestamp }),
+    body: JSON.stringify({ host: deps.domain, username, pubkey: deps.pubkey, signature, timestamp }),
   })
   if (!response.ok) {
     await refuse(response, deps.pubkey)
@@ -131,7 +137,7 @@ export async function confirmName(
   const response = await (deps.request ?? fetch)(endpoint(deps.gatewayUrl, '/api/quote/confirm'), {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ username, pubkey: deps.pubkey, reference }),
+    body: JSON.stringify({ host: deps.domain, username, pubkey: deps.pubkey, reference }),
   })
   if (response.status === 402) {
     // Not an error. The payment has simply not been seen yet, and the caller keeps waiting.
