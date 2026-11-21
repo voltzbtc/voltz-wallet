@@ -63,10 +63,16 @@ The app's screens and components are drawn in a Figma file anyone with the link 
 [Voltz Wallet, design system e app](https://www.figma.com/design/HHYuNcpckPu4KfZyDtYkzf). Its variables
 carry the names of the tokens in `src/theme.ts` (`color/surface` is `colors.surface`, `space/lg` is
 `space.lg`), its text styles follow the roles of `Txt`, and its components carry the names of those in
-`src/components`, each description naming the code it mirrors. A visual change starts from those
-components and variables. The file draws text in Inter in place of the platform fonts, so type is
-measured in the app, and where the file and the code disagree the code decides and the file is the one
-corrected.
+`src/components`, each description naming the code it mirrors. The file draws text in Inter in place
+of the platform fonts, so type is measured in the app.
+
+- A new screen or a layout change is designed in the file first, from the library's components. A
+  piece that will repeat becomes a component before it goes into a screen.
+- The code then follows the design, and the pull request links the Figma frame next to the before
+  and after photos.
+- A small fix (copy, spacing, a bug) may go straight to code. A pull request that changes a screen in
+  code updates the file too, so the two never drift apart.
+- Where the file and the code disagree, the code is the source of truth.
 
 ## Photos of a visual change
 
