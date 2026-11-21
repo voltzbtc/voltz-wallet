@@ -34,6 +34,14 @@ with the app in front, FCM hands the message to the process instead,
   execution surface and change nothing.
 - **The wording is rendered on the device** and sent with the registration, so the 24 locales have
   one copy. `{amount}` and `{domain}` stay literal and are filled in by the gateway.
+- **What a locked screen shows of a notice is set by the person, not by the app.** Android draws a
+  notice in full on a secure lock screen unless the person hides sensitive content there, and an app
+  cannot make its own channel private: `NotificationChannel.setLockscreenVisibility` is modifiable
+  only by the system, which resets it on every channel an app creates
+  (`PreferencesHelper.createNotificationChannel`), so a new channel id would change nothing. iOS
+  follows the person's Show Previews setting. What the app and the gateway decide is the wording,
+  which carries `{amount}`, and the visibility a message may name
+  (`android.notification.visibility` in FCM's message).
 - **The iOS bundle identifier is `app.usevoltz`**, the same as the Android `applicationId`, named
   after the product's domain. A Firebase iOS app cannot change its bundle id after registration, so
   the id is fixed before anything registers it.
