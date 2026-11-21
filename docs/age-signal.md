@@ -40,7 +40,9 @@ Range on iOS.
   lists (with its seed, or without it after a backup carried the list), and one removed here, by
   Remove wallet or by the erase behind Forgot PIN and Erase and restore, whose fingerprints
   `heldWallets.ts` keeps so those sheets' promise of a restore holds. Welcome and Add wallet draw
-  `AdultsOnly` in place of every step before the write.
+  `AdultsOnly` in place of the choice and every step that draws new words, with a link to the import
+  step, which stays: the write decides whether typed words are a wallet this device held. Words it
+  refuses go back to `AdultsOnly`.
 - A store purchase: `buyInStore` answers `{ kind: 'adultsOnly' }` before any order is opened, and the
   name and domain screens say so.
 

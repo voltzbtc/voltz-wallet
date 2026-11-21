@@ -408,8 +408,12 @@ function App(): React.JSX.Element {
     if (!writing.current) {
       setCommitted(true)
       writing.current = write().catch((err: unknown) => {
-        // A refusal for age is shown, not logged, since a log of it would say the person's age.
-        if (!isAgeRefusal(err)) {
+        // A refusal for age wrote nothing and goes back to the page that says why. It is not logged,
+        // since a log of it would say the person's age.
+        if (isAgeRefusal(err)) {
+          setCommitted(false)
+          setStage('welcome')
+        } else {
           console.warn(`first write failed: ${(err as Error)?.message ?? String(err)}`)
         }
         writing.current = null
@@ -689,12 +693,15 @@ function App(): React.JSX.Element {
                       </ScrollView>
                     )}
 
-                    {/* The ways to a first wallet give way when the store's age signal says the
-                        person is under 18. Nothing is on the device yet, so nothing is locked. */}
-                    {minor && (stage === 'welcome' || stage === 'backup' || stage === 'import') && (
+                    {/* The ways to a new wallet give way when the store's age signal says the person
+                        is under 18, and the import step stays: after Forgot PIN, Erase and restore or
+                        a backup that carried the list, the words of a wallet this device held bring it
+                        back, and the write refuses any other (wallet.ts). */}
+                    {minor && (stage === 'welcome' || stage === 'backup') && (
                       <ScrollView contentContainerStyle={styles.centredStage}>
                         <Image source={require('./src/assets/logo.png')} style={styles.logo} />
-                        <AdultsOnly />
+                        <AdultsOnly restore={{ label: t('welcome.import'), onPress: () => setStage('import') }} />
+                        <TermsAcceptance style={styles.welcomeTerms} />
                       </ScrollView>
                     )}
 
@@ -750,7 +757,7 @@ function App(): React.JSX.Element {
                       />
                     )}
 
-                    {stage === 'import' && !minor && (
+                    {stage === 'import' && (
                       <ImportScreen
                         onImported={importWallet}
                         onBack={goBack}

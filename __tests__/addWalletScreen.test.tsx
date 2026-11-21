@@ -430,13 +430,16 @@ describe('the store age signal', () => {
     __resetAgeSignalForTests()
   })
 
-  test('under 18 shows what the app is for instead of the choice', async () => {
+  test('under 18 shows what the app is for instead of the choice, and keeps the import', async () => {
     ageStore.shares(13, 15)
     await askAgeSignal()
     const tree = await render()
     expect(allText(tree)).toContain(i18n.t('ageGate.title'))
     expect(allText(tree)).not.toContain(i18n.t('addWallet.create'))
-    expect(allText(tree)).not.toContain(i18n.t('addWallet.import'))
+    expect(allText(tree)).not.toContain(i18n.t('welcome.dice'))
+    await press(tree, i18n.t('addWallet.import'))
+    expect(allText(tree)).toContain(i18n.t('import.subtitle'))
+    expect(allText(tree)).not.toContain(i18n.t('ageGate.title'))
   })
 
   test('an adult keeps the choice', async () => {

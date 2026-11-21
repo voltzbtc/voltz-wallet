@@ -43,6 +43,9 @@ type Stage =
   | 'passkeyVerify'
   | 'leaving'
 
+// The stages a store age signal under 18 replaces: the choice and every step that draws new words.
+const TOWARD_NEW: ReadonlySet<Stage> = new Set<Stage>(['choose', 'dice', 'backup', 'verify', 'passphrase'])
+
 // Stages absent here let the default back leave the flow entirely.
 const PREVIOUS_STAGE: Partial<Record<Stage, Stage>> = {
   dice: 'choose',
@@ -243,12 +246,13 @@ export function AddWalletScreen(): React.JSX.Element {
     return <WalletRowsSkeleton />
   }
 
-  // Every step before the write gives way when the store's age signal says the person is under 18. The
-  // wallets already on the device are not here, and keep working.
-  if (minor && stage !== 'failed') {
+  // The steps toward a new wallet give way when the store's age signal says the person is under 18. The
+  // import step stays, since the words of a wallet this device held bring it back, and the write refuses
+  // any other (wallet.ts). The wallets already on the device are not here, and keep working.
+  if (minor && TOWARD_NEW.has(stage)) {
     return (
       <Screen layout="center">
-        <AdultsOnly />
+        <AdultsOnly restore={{ label: t('addWallet.import'), onPress: () => setStage('import') }} />
       </Screen>
     )
   }

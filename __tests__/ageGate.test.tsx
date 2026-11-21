@@ -1,11 +1,13 @@
 import React from 'react'
 import ReactTestRenderer from 'react-test-renderer'
-import { Text } from 'react-native'
+import { Text, TextInput } from 'react-native'
 import RNFS from 'react-native-fs'
 import * as Keychain from 'react-native-keychain'
 import App from '../App'
 import i18n from '../src/i18n'
 import { __resetAgeSignalForTests } from '../src/wallet/ageSignal'
+import { fingerprintFromMnemonic } from '../src/wallet/fingerprint'
+import { PinScreen } from '../src/screens/PinScreen'
 
 // What the app shows when the store's age signal says the person is under 18: the ways to a new wallet
 // give way to the adults-only screen, and a wallet already on the device opens as ever.
@@ -24,6 +26,8 @@ type Tree = ReactTestRenderer.ReactTestRenderer
 const PIN = 'com.voltz.wallet.pin'
 const SEED = 'com.voltz.wallet.seed'
 const WORDS = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+const OTHER = 'zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong'
+const HELD = `${RNFS.DocumentDirectoryPath}/held-wallets.json`
 const keychain = new Map<string, string>()
 
 function allText(tree: Tree): string[] {
@@ -75,6 +79,19 @@ async function typePin(tree: Tree, pin: string): Promise<void> {
   await settle()
 }
 
+async function typeWords(tree: Tree, words: string): Promise<void> {
+  const fields = tree.root.findAllByType(TextInput)
+  const list = words.split(' ')
+  for (let i = 0; i < list.length; i++) {
+    await ReactTestRenderer.act(async () => {
+      fields[i].props.onChangeText(list[i])
+    })
+  }
+  await settle()
+}
+
+const seeds = (): string[] => [...keychain.keys()].filter(service => service.startsWith(SEED))
+
 const adultsOnly = (tree: Tree) => tree.root.findAll(node => node.props.testID === 'adultsOnly')
 
 beforeEach(() => {
@@ -93,16 +110,45 @@ beforeEach(() => {
 })
 
 describe('the first run', () => {
-  test('a minor sees what the app is for and no way to a wallet', async () => {
+  test('a minor sees what the app is for, no way to a new wallet, and the way back for one held here', async () => {
     store.shares(13, 15)
     const tree = await boot()
     const text = allText(tree)
     expect(adultsOnly(tree).length).toBeGreaterThan(0)
     expect(text).toContain(i18n.t('ageGate.title'))
+    expect(text).toContain(i18n.t('ageGate.restore'))
     expect(text).toContain(i18n.t('ageGate.contest'))
     expect(text).toContain(i18n.t('welcome.contactSupport'))
+    expect(text).toContain(i18n.t('welcome.import'))
     expect(text).not.toContain(i18n.t('welcome.create'))
-    expect(text).not.toContain(i18n.t('welcome.import'))
+  })
+
+  // Forgot PIN and Erase and restore promise the words bring a wallet back, and a backup can carry the
+  // list to a phone without the seed.
+  test('a minor restores a wallet this device held from its words', async () => {
+    await RNFS.writeFile(HELD, JSON.stringify([fingerprintFromMnemonic(WORDS)]), 'utf8')
+    store.shares(13, 15)
+    const tree = await boot()
+    await press(tree, i18n.t('welcome.import'))
+    await typeWords(tree, WORDS)
+    await press(tree, i18n.t('import.restore'))
+    expect(seeds()).toHaveLength(1)
+    expect(tree.root.findAllByType(PinScreen)).toHaveLength(1)
+  })
+
+  test('a minor typing words this device never held is refused, writes nothing, and is told why', async () => {
+    await RNFS.writeFile(HELD, JSON.stringify([fingerprintFromMnemonic(WORDS)]), 'utf8')
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+    store.shares(13, 15)
+    const tree = await boot()
+    await press(tree, i18n.t('welcome.import'))
+    await typeWords(tree, OTHER)
+    await press(tree, i18n.t('import.restore'))
+    expect(seeds()).toEqual([])
+    expect(adultsOnly(tree).length).toBeGreaterThan(0)
+    expect(allText(tree)).toContain(i18n.t('ageGate.title'))
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
   })
 
   // Anything short of a range under 18 leaves the welcome as it is.
@@ -127,17 +173,17 @@ describe('the first run', () => {
     expect(store.calls).toEqual({ regulated: 1, request: 0 })
   })
 
-  // The answer can land after the person has gone on to type their words.
-  test('a minor answer that lands on the import step takes its place', async () => {
+  // The answer can land after the person has gone on to the new words.
+  test('a minor answer that lands on the new words takes their place', async () => {
     store.shares(13, 15)
     store.holds()
     const tree = await boot()
-    await press(tree, i18n.t('welcome.import'))
-    expect(adultsOnly(tree)).toEqual([])
+    await press(tree, i18n.t('welcome.create'))
+    expect(allText(tree)).toContain(i18n.t('backup.confirm'))
     store.release()
     await settle()
     expect(adultsOnly(tree).length).toBeGreaterThan(0)
-    expect(allText(tree)).not.toContain(i18n.t('import.title'))
+    expect(allText(tree)).not.toContain(i18n.t('backup.confirm'))
   })
 })
 

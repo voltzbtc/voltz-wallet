@@ -1287,6 +1287,7 @@
   "ageGate": {
     "title": "Voltz ist ab 18 Jahren",
     "body": "Dein App-Store-Konto gibt an, dass du unter 18 bist. Deshalb kann auf diesem Gerät keine neue Wallet erstellt oder hinzugefügt werden.",
+    "restore": "Eine Wallet, die schon auf diesem Gerät war, kommt mit ihrer Wiederherstellungsphrase zurück.",
     "contest": "Wenn dein Alter falsch ist, korrigiere es in deinem App-Store-Konto und öffne Voltz noch einmal.",
     "purchase": "Käufe sind erst ab 18 Jahren möglich. Wenn dein Alter falsch ist, korrigiere es in deinem App-Store-Konto und öffne Voltz noch einmal."
   }
