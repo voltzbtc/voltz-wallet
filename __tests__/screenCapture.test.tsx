@@ -6,6 +6,7 @@ import { BackupScreen } from '../src/screens/BackupScreen'
 import { ImportScreen } from '../src/screens/ImportScreen'
 import { RecoveryPhraseScreen } from '../src/screens/RecoveryPhraseScreen'
 import { VerifyBackupScreen } from '../src/screens/VerifyBackupScreen'
+import { PassphraseScreen } from '../src/screens/PassphraseScreen'
 import { askedPosition, pickWord } from './support/backupQuiz'
 import { BackSlot } from '../src/components/BackHeader'
 import { loadPassphraseFor, loadSeedFor } from '../src/wallet/seed'
@@ -313,6 +314,51 @@ describe('the restore fields, where the words are typed', () => {
     expect(texts(tree)).not.toContain(i18n.t('backup.screenshotTaken'))
 
     await act(() => fields(tree)[0].props.onChangeText('abandon'))
+    await act(() => device.screenshot())
+    expect(texts(tree)).toContain(i18n.t('backup.screenshotTaken'))
+  })
+})
+
+describe('the passphrase step of a new wallet, where the field can be revealed', () => {
+  const fields = (tree: ReactTestRenderer.ReactTestRenderer) => tree.root.findAllByType(TextInput)
+
+  async function adding(): Promise<ReactTestRenderer.ReactTestRenderer> {
+    const tree = await renderOf(<PassphraseScreen onDone={jest.fn()} />)
+    const add = tree.root
+      .findAll(n => typeof n.props.onPress === 'function')
+      .find(n => n.findAllByType(Text).some(text => text.props.children === i18n.t('passphrase.add')))!
+    await act(() => add.props.onPress())
+    return tree
+  }
+
+  it('draws no field until the first read answers', async () => {
+    const tree = await adding()
+    expect(fields(tree)).toHaveLength(0)
+    await act(() => device.answer(false))
+    expect(fields(tree)).toHaveLength(1)
+  })
+
+  it('takes the field off with a recording, says why, and brings back what was typed', async () => {
+    const tree = await adding()
+    await act(() => device.answer(false))
+    await act(() => fields(tree)[0].props.onChangeText('segredo'))
+
+    await act(() => device.capturedChange(true))
+    expect(fields(tree)).toHaveLength(0)
+    expect(texts(tree)).toContain(i18n.t('backup.wordsHidden'))
+
+    await act(() => device.capturedChange(false))
+    expect(fields(tree)[0].props.value).toBe('segredo')
+    expect(texts(tree)).not.toContain(i18n.t('backup.wordsHidden'))
+  })
+
+  it('asks to delete a screenshot only once something is typed', async () => {
+    const tree = await adding()
+    await act(() => device.answer(false))
+    await act(() => device.screenshot())
+    expect(texts(tree)).not.toContain(i18n.t('backup.screenshotTaken'))
+
+    await act(() => fields(tree)[0].props.onChangeText('segredo'))
     await act(() => device.screenshot())
     expect(texts(tree)).toContain(i18n.t('backup.screenshotTaken'))
   })
