@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { AppDrawer } from './AppDrawer'
 import { backToHomeTab } from './backToHomeTab'
 import type { HomeTabsParamList } from './HomeTabs'
-import { setDeeplinkHandler } from '../wallet/deeplink'
+import { releaseDeeplinksAfterUnlock, setDeeplinkHandler } from '../wallet/deeplink'
 import {
   setForegroundNoticeHandler,
   setPushHandler,
@@ -191,14 +191,16 @@ export function RootNavigator(): React.JSX.Element {
     },
     [navRef],
   )
-  // Send reads the destination over the network as it opens, so a link that arrives under the PIN
-  // waits in deeplink.ts and reaches Send once, after the unlock.
+  // Send reads the destination over the network as it opens, so a link that arrives under the PIN, or
+  // on a return whose lock is still being decided, waits in deeplink.ts and reaches Send once, after
+  // the unlock.
   const underLock = useUnderLock()
   React.useEffect(() => {
     if (underLock) {
       return
     }
     setDeeplinkHandler(goToSend)
+    releaseDeeplinksAfterUnlock()
     return () => setDeeplinkHandler(null)
   }, [goToSend, underLock])
 

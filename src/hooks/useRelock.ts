@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { AppState } from 'react-native'
 import { liftCover, liftCoverAfterModals, mustLock, readAway, whenInFront } from '../wallet/relock'
+import { holdDeeplinks, settleDeeplinkHold } from '../wallet/deeplink'
 
 // If the lock is in the tree and its layout never reported, the cover comes down after this anyway, so
 // a lost layout event cannot leave the app behind a cover with no way past it.
@@ -61,6 +62,7 @@ export function useRelock(armed: boolean, locked: boolean, lock: () => Promise<v
           const tooLong = mustLock(readAway(), left.current)
           left.current = false
           if (!tooLong || !armedNow.current) {
+            settleDeeplinkHold(false)
             if (!awaitingDraw.current) {
               liftCover()
             }
@@ -70,6 +72,7 @@ export function useRelock(armed: boolean, locked: boolean, lock: () => Promise<v
             // The PIN is already drawn and lays out no more. Locking again still cancels an unlock
             // that was reading when the app left.
             await lockNow.current()
+            settleDeeplinkHold(true)
             if (!awaitingDraw.current) {
               liftCoverAfterModals()
             }
@@ -77,6 +80,9 @@ export function useRelock(armed: boolean, locked: boolean, lock: () => Promise<v
           }
           awaitingDraw.current = true
           await lockNow.current()
+          // Only once the lock is set: an unlock that was reading when the app left can still open the
+          // navigator before it, and that must not let a link through.
+          settleDeeplinkHold(true)
           clearTimeout(fallback)
           fallback = setTimeout(() => {
             if (lockedNow.current) {
@@ -93,6 +99,8 @@ export function useRelock(armed: boolean, locked: boolean, lock: () => Promise<v
     const sub = AppState.addEventListener('change', state => {
       if (state === 'background') {
         left.current = true
+        // A link the return brings waits for this trip's decision (deeplink.ts).
+        holdDeeplinks()
       } else if (state === 'active') {
         decide().catch(() => undefined)
       }
