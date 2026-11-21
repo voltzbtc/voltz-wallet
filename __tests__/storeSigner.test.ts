@@ -13,7 +13,7 @@ const REF = 'e621e1f8-c36c-495a-93fc-0c247a3e6e5f'
 function instance(pubkey: string, signature: string) {
   return {
     getInfo: jest.fn(async () => ({ identityPubkey: pubkey, balanceSats: 0n, tokenBalances: new Map() })),
-    signMessage: jest.fn(async () => ({ signature })),
+    signMessage: jest.fn(async () => ({ signature, pubkey })),
     disconnect: jest.fn(async () => undefined),
   }
 }

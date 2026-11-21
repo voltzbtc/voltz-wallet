@@ -1141,14 +1141,20 @@ export async function sparkConnectedIdentity(): Promise<{ walletId: string; pubk
 // identity is read from it when not yet known, and the signature is refused, as without a
 // connection, when that identity is another, so no request carries one wallet's signature over
 // another's pubkey. The signature is made on that same connection even if another replaces it
-// meanwhile, and a connection only ever holds its own wallet's key.
+// meanwhile, and a connection only ever holds its own wallet's key. The SDK answers the key it signed
+// with, and a signature it says another key made is refused the same way, so the pubkey sent is the
+// signer's whatever path the identity read and the signing key take.
 export async function sparkSignMessage(message: string, as: string): Promise<string> {
   const signer = requireConnection()
   const identity = signer.identity ?? (await identityOf(signer))
   if (identity !== as) {
     throw new Error('spark connected as another identity')
   }
-  return (await signer.sdk.signMessage({ message, compact: false })).signature
+  const signed = await signer.sdk.signMessage({ message, compact: false })
+  if (typeof signed.pubkey !== 'string' || signed.pubkey.toLowerCase() !== as.toLowerCase()) {
+    throw new Error('spark connected as another identity')
+  }
+  return signed.signature
 }
 
 // The Spark address of the wallet whose identity is `as`, read on one connection and refused, as
