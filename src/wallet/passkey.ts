@@ -27,6 +27,7 @@ import { isUnconfirmed } from './backupMark'
 import { isUnreadableFile, readDurable, serialQueue, writeDurable } from './durableFile'
 import { fingerprintFromMnemonicAsync } from './fingerprint'
 import { asOwnActivity } from './relock'
+import { secureBytes, toHex } from './secureRandom'
 import { PRIMARY_ID } from './seed'
 import { getActiveWalletId, loadRegistry } from './walletRegistry'
 
@@ -235,13 +236,10 @@ function bridgedProvider(inner: InstanceType<ProviderModule['PasskeyProvider']>,
 
 // Unique per registration, because Apple's Passwords treats two passkeys of one domain and user.name
 // as one. Never a person's name: the system shows it in its picker and nothing here needs one.
-// The name holds no secret, and its tail still comes from the secure source the seed uses, so the
-// file has a single kind of randomness to audit.
+// The name holds no secret, and its tail still comes from the secure source the seed uses
+// (secureBytes), so the wallet code has a single kind of randomness to audit.
 function uniqueUserName(): string {
-  const bytes = new Uint8Array(5)
-  globalThis.crypto.getRandomValues(bytes)
-  const tail = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
-  return `voltz-${Date.now().toString(36)}-${tail}`
+  return `voltz-${Date.now().toString(36)}-${toHex(secureBytes(5, 'a passkey user name'))}`
 }
 
 // A client per ceremony, since the provider takes the user name when it is built.

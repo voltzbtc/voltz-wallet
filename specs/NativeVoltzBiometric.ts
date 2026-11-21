@@ -13,8 +13,9 @@ import { TurboModuleRegistry } from 'react-native'
 // key bound to the prompt, and the one Blockstream Green uses (AndroidKeystore.kt).
 //
 // Rejections carry a code: E_CANCELLED (the person closed the prompt), E_INVALIDATED (the enrolled
-// biometrics changed, and the entry is already gone), E_UNAVAILABLE (no strong biometric enrolled,
-// no screen lock, or no activity to show the prompt over) and E_FAILED.
+// biometrics changed, or the sealed bytes are not the key's, and the entry is already gone),
+// E_UNAVAILABLE (no strong biometric enrolled, no screen lock, or no activity in front to show the
+// prompt over) and E_FAILED (any other failure, which keeps the entry).
 export interface Spec extends TurboModule {
   // Writes `secret` under a new key after a strong biometric on the prompt, replacing any entry.
   enroll(secret: string, title: string, cancel: string): Promise<void>

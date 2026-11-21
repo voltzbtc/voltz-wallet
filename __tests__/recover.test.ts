@@ -1,5 +1,6 @@
 import RNFS from 'react-native-fs'
 import {
+  fetchPendingCharges,
   helpMailUrl,
   paymentEvidence,
   pendingChargesMessage,
@@ -235,6 +236,28 @@ describe('a treasury that cannot answer', () => {
     expect((await asked()).w_a.open).toBe(true)
   })
 
+  test.each([
+    ['an address', `${BUILD}@other.example`],
+    ['a path', 'other.example/x'],
+    ['a scheme', `https://${SOLD_ON}`],
+    ['nothing', ''],
+  ])('a charge whose domain carries %s is a row this build cannot read', async (_what, domain) => {
+    const { deps, calls } = harness({
+      pending: ok({ charges: [{ ...NAME_CHARGE, reference: 'ref-odd', domain }, NAME_CHARGE] }),
+    })
+
+    const reply = await fetchPendingCharges(deps, BUILD)
+    expect(reply.whole).toBe(false)
+    expect(reply.charges.map(c => c.reference)).toEqual([NAME_CHARGE.reference])
+
+    const found = await recoverPurchases(deps)
+    expect(found).toMatchObject({ status: 'ready', subject: `bakery@${SOLD_ON}` })
+    expect((await asked()).w_a.open).toBe(true)
+    const confirms = calls.filter(c => c.url.includes('/api/quote/confirm'))
+    expect(confirms.map(c => c.body.reference)).not.toContain('ref-odd')
+    expect(calls.every(c => c.url.startsWith(`https://${BUILD}/`))).toBe(true)
+  })
+
   test('and still recovers the charge it could read', async () => {
     const { deps } = harness({
       pending: ok({ charges: [{ ...TIER_CHARGE, subject: '' }, NAME_CHARGE] }),
@@ -267,12 +290,15 @@ describe('nothing pending', () => {
 })
 
 describe('a name that was paid for and never received', () => {
-  test('is confirmed on the domain it was sold on, not the one the build ships with', async () => {
+  // Named in the body and sent to the build's domain, so the domain read from the gateway's answer
+  // is never a host the app connects to.
+  test('is confirmed on the domain it was sold on, named in the body at the build domain', async () => {
     const { deps, calls } = harness({ pending: ok({ charges: [NAME_CHARGE] }) })
     const found = await recoverPurchases(deps)
     const confirm = calls.find(c => c.url.includes('/api/quote/confirm'))
-    expect(confirm?.url).toBe(`https://${SOLD_ON}/api/quote/confirm`)
+    expect(confirm?.url).toBe(`https://${BUILD}/api/quote/confirm`)
     expect(confirm?.body).toEqual({
+      host: SOLD_ON,
       username: 'bakery',
       pubkey: PUBKEY,
       reference: 'ref-name',

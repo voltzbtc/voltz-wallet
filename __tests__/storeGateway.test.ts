@@ -110,7 +110,7 @@ describe('opening an order', () => {
     expect(g.calls).toEqual([
       {
         url: `https://${DOMAIN}/api/store/order`,
-        body: { store: 'apple', kind: 'name', subject: 'alice', pubkey: PUBKEY, signature: 'sig-1', timestamp: 1_800_000_000 },
+        body: { host: DOMAIN, store: 'apple', kind: 'name', subject: 'alice', pubkey: PUBKEY, signature: 'sig-1', timestamp: 1_800_000_000 },
       },
     ])
     expect(g.signed).toEqual([storeOrderMessage(DOMAIN, PUBKEY, 'apple', 'name', 'alice', 1_800_000_000)])
@@ -212,6 +212,7 @@ describe('confirming a purchase', () => {
       {
         url: `https://${DOMAIN}/api/store/confirm`,
         body: {
+          host: DOMAIN,
           store: 'apple',
           reference: REF,
           transactionId: '2000000123456789',
@@ -383,7 +384,7 @@ describe('recording a spend intent', () => {
     expect(g.calls).toEqual([
       {
         url: `https://${DOMAIN}/api/store/spend`,
-        body: { username: 'alice', pubkey: PUBKEY, signature: 'sig-1', timestamp: 1_800_000_000 },
+        body: { host: DOMAIN, username: 'alice', pubkey: PUBKEY, signature: 'sig-1', timestamp: 1_800_000_000 },
       },
     ])
     expect(g.signed).toEqual([storeSpendMessage(DOMAIN, PUBKEY, 'alice', 1_800_000_000)])

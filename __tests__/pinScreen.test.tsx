@@ -5,8 +5,8 @@ import i18n from '../src/i18n'
 import { PinScreen } from '../src/screens/PinScreen'
 import { DollarModeProvider } from '../src/wallet/dollarMode'
 import { TabIcon } from '../src/components/TabIcon'
-import { unlockWithBiometrics } from '../src/wallet/biometrics'
-import { enterPin, pinWaitLeft, verifyPin } from '../src/wallet/pin'
+import { isBiometricUnlockEnabled, unlockWithBiometrics } from '../src/wallet/biometrics'
+import { clearPinFailures, enterPin, pinWaitLeft, verifyPin } from '../src/wallet/pin'
 import { colors, textScale } from '../src/theme'
 
 // The keypad's check, over the comparison each case decides, with no wrong-PIN wait.
@@ -388,6 +388,22 @@ describe('a biometric success', () => {
     expect(onDone).not.toHaveBeenCalled()
   })
 
+  // The owner's biometric ends a run of wrong PINs, as the right PIN does.
+  it('clears the wrong-PIN count, and a no clears nothing', async () => {
+    jest.mocked(clearPinFailures).mockClear()
+    let say!: (yes: boolean) => void
+    unlock.mockReturnValue(new Promise(resolve => (say = resolve)))
+    const tree = await open(<PinScreen mode="enter" onDone={jest.fn()} />)
+    await ReactTestRenderer.act(async () => say(false))
+    expect(clearPinFailures).not.toHaveBeenCalled()
+
+    unlock.mockResolvedValue(true)
+    await ReactTestRenderer.act(async () =>
+      tree.root.findByProps({ accessibilityLabel: i18n.t('pin.biometricPrompt') }).props.onPress(),
+    )
+    expect(clearPinFailures).toHaveBeenCalledTimes(1)
+  })
+
   it('opens at once with reduced motion, with no fill', async () => {
     jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockResolvedValue(true)
     let say!: (yes: boolean) => void
@@ -471,6 +487,30 @@ describe('a biometric success', () => {
     await steps(1_000)
 
     expect(onDone).not.toHaveBeenCalled()
+  })
+})
+
+// An entry whose key a new enrollment invalidated is removed by the unlock that finds it, after the
+// keypad read it as on, and the key would then prompt for nothing.
+describe('a biometric entry the unlock found gone', () => {
+  const biometricKeys = (tree: ReactTestRenderer.ReactTestRenderer) =>
+    tree.root.findAll(n => n.props.accessibilityLabel === i18n.t('pin.biometricPrompt'))
+
+  afterEach(() => {
+    jest.mocked(isBiometricUnlockEnabled).mockResolvedValue(true)
+  })
+
+  it('takes the biometric key away', async () => {
+    jest.mocked(isBiometricUnlockEnabled).mockResolvedValueOnce(true).mockResolvedValue(false)
+    const tree = await render(lock())
+    expect(unlockWithBiometrics).toHaveBeenCalled()
+    expect(biometricKeys(tree)).toHaveLength(0)
+  })
+
+  it('keeps it after a no while the entry is still there', async () => {
+    const tree = await render(lock())
+    expect(unlockWithBiometrics).toHaveBeenCalled()
+    expect(biometricKeys(tree).length).toBeGreaterThan(0)
   })
 })
 
@@ -570,6 +610,53 @@ describe('the wait after too many wrong PINs', () => {
     await ReactTestRenderer.act(async () => {
       answer({ ok: false, waitMs: 0 })
     })
+    await typeSix(tree)
+    expect(enterPin).toHaveBeenCalledTimes(2)
+  })
+
+  // A PIN refused because a wait runs was never compared, so it is not called wrong.
+  it('neither shakes nor calls wrong a PIN refused because a wait runs', async () => {
+    jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockResolvedValue(false)
+    const sequence = jest.spyOn(Animated, 'sequence')
+    jest.mocked(enterPin).mockResolvedValueOnce({ ok: false, waitMs: 30_000, waiting: true })
+    const tree = await render(lock())
+    await typeSix(tree)
+    expect(sequence).not.toHaveBeenCalled()
+    expect(allText(tree)).toContain(i18n.t('pin.wait', { time: '0:30' }))
+
+    // A wrong PIN that starts a wait does shake, so the spy can see one.
+    jest.mocked(enterPin).mockResolvedValueOnce({ ok: false, waitMs: 30_000 })
+    await typeSix(await render(lock()))
+    expect(sequence).toHaveBeenCalled()
+  })
+
+  // A press can reach a handler drawn before the answer that starts the wait has been drawn.
+  it('takes no digit from a press that lands before the wait is drawn', async () => {
+    jest.mocked(enterPin).mockResolvedValueOnce({ ok: false, waitMs: 30_000 })
+    const tree = await render(lock())
+    const early = key(tree, '1').props.onPress
+    await typeSix(tree)
+    await ReactTestRenderer.act(async () => {
+      early()
+    })
+    await settle()
+    expect(filledColours(tree)).toEqual([])
+    expect(allText(tree)).toContain(i18n.t('pin.wait', { time: '0:30' }))
+  })
+
+  // A Keychain that fails on the check leaves nothing to compare; the keypad says so and takes the
+  // next try rather than hold six dots in silence.
+  it('says a check that could not run, without the shake, and takes the next PIN', async () => {
+    jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockResolvedValue(false)
+    jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const sequence = jest.spyOn(Animated, 'sequence')
+    jest.mocked(enterPin).mockRejectedValueOnce(new Error('keystore unavailable'))
+    const tree = await render(lock())
+    await typeSix(tree)
+    expect(allText(tree)).toContain(i18n.t('pin.checkFailed'))
+    expect(filledColours(tree)).toEqual([])
+    expect(sequence).not.toHaveBeenCalled()
+
     await typeSix(tree)
     expect(enterPin).toHaveBeenCalledTimes(2)
   })

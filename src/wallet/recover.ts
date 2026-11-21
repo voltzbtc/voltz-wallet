@@ -7,6 +7,7 @@ import {
   clearPendingPurchase,
   confirmDomain,
   loadPendingPurchase,
+  normaliseDomain,
   recordPurchaseRefusal,
   releasePendingPurchase,
   savePendingPurchase,
@@ -125,13 +126,16 @@ export function pendingChargesMessage(pubkey: string, timestamp: number): string
   return [VERSION, 'pending-charges', pubkey, String(timestamp)].join('\n')
 }
 
+// A domain is read only as the bare hostname the gateway writes, already normalised: it goes into the
+// confirm's signed body and onto the card the person reads, so a value carrying an address, a path or a
+// scheme is a row this build cannot read.
 function isCharge(value: unknown): value is PendingCharge {
   const row = value as PendingCharge
   return (
     typeof row?.reference === 'string' &&
     (row.kind === 'name' || row.kind === 'tier') &&
     typeof row.domain === 'string' &&
-    row.domain !== '' &&
+    normaliseDomain(row.domain) === row.domain &&
     typeof row.subject === 'string' &&
     row.subject !== '' &&
     typeof row.amountSats === 'number'
@@ -273,11 +277,13 @@ function dueAgain(last: Ask | undefined, nowSecs: number): boolean {
 }
 
 // The address on the charge, never the one the wallet is connected to. The gateway compares the
-// charge's domain against the Host the confirmation arrived on, so a name bought on one domain and
-// confirmed on another is refused as somebody else's purchase.
-function nameDeps(deps: RecoverDeps, charge: PendingCharge) {
+// charge's domain against the domain the confirmation names, so a name bought on one domain and
+// confirmed on another is refused as somebody else's purchase. Sent to the build's domain with the
+// charge's domain in the body, as every name request is (currentDeps), so the domain from the
+// gateway's answer never becomes the host the app connects to.
+function nameDeps(deps: RecoverDeps, build: string, charge: PendingCharge) {
   return {
-    gatewayUrl: `https://${charge.domain}`,
+    gatewayUrl: `https://${build}`,
     domain: charge.domain,
     pubkey: deps.pubkey,
     sign: deps.sign,
@@ -397,7 +403,7 @@ async function finish(
     await forgetDomainAsk(deps.walletId)
     return { ...base, status: 'ready' }
   }
-  const entitled = await confirmName(nameDeps(deps, charge), charge.subject, charge.reference)
+  const entitled = await confirmName(nameDeps(deps, build, charge), charge.subject, charge.reference)
   if (!entitled) {
     return { ...base, status: 'settling' }
   }

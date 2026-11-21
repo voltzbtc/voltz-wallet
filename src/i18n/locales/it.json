@@ -94,7 +94,7 @@
     "words_other": "{{count}} parole",
     "dice": "Genera con i dadi (avanzato)",
     "bootFailed": "Non è stato possibile aprire i wallet di questo dispositivo in questo momento. Riprova tra poco o scrivi all'assistenza.",
-    "bootUnreadable": "I wallet salvati qui non si possono aprire su questo telefono. Succede quando i dati dell'app sono stati copiati da un altro telefono.",
+    "bootUnreadable": "Non è stato possibile aprire su questo telefono i wallet salvati qui. Se Riprova continua a non riuscire, probabilmente i dati dell'app sono stati copiati da un altro telefono, e per rientrare c'è Cancella e ripristina.",
     "bootRestore": "Cancella e ripristina",
     "contactSupport": "Scrivi all'assistenza",
     "terms": "Continuando, accetti i <terms>Termini di utilizzo</terms> e confermi di aver letto l'<privacy>Informativa sulla privacy</privacy>."
@@ -377,6 +377,7 @@
     "wait": "Troppi PIN errati. Riprova tra {{time}}.",
     "biometricPrompt": "Sblocca Voltz",
     "saveFailed": "Non è stato possibile salvare il tuo PIN su questo dispositivo. Riprova.",
+    "checkFailed": "Non è stato possibile verificare il tuo PIN su questo dispositivo. Riprova.",
     "forgot": "Hai dimenticato il PIN?",
     "forgotTitle": "Cancellare i wallet per rientrare?",
     "forgotBody": "Il PIN non si può recuperare. L'unico modo per rientrare è cancellare tutti i wallet da questo dispositivo e ripristinarli ciascuno con la sua frase di recupero. Senza la sua frase di recupero, un wallet e tutto il suo denaro vanno persi per sempre.",

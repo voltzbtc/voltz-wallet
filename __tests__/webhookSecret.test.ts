@@ -70,6 +70,17 @@ describe('the secret', () => {
     }
   })
 
+  it('refuses a draw that fell back to Math.random, which still passes the availability check', () => {
+    jest.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation(bytes => {
+      const view = bytes as unknown as Uint8Array
+      for (let i = 0; i < view.length; i += 1) {
+        view[i] = Math.floor(Math.random() * 256)
+      }
+      return bytes
+    })
+    expect(() => drawWebhookSecret()).toThrow('non-crypto RNG')
+  })
+
   it('refuses a draw whose tail came back zeroed, the trace of a truncated native answer', () => {
     jest.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation(bytes => {
       const view = bytes as unknown as Uint8Array

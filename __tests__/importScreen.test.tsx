@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactTestRenderer from 'react-test-renderer'
 import { Dimensions, Text, TextInput } from 'react-native'
+import Clipboard from '@react-native-clipboard/clipboard'
 import i18n from '../src/i18n'
 import { ImportScreen } from '../src/screens/ImportScreen'
 import { ScreenTitle } from '../src/components/ScreenTitle'
@@ -454,4 +455,35 @@ test('Paste stands over the grid it fills, not with the title', () => {
   const pasteAt = drawn.indexOf(i18n.t('import.paste'))
   expect(pasteAt).toBeGreaterThan(drawn.indexOf(i18n.t('import.subtitle')))
   expect(pasteAt).toBeLessThan(drawn.indexOf(i18n.t('import.wordLabel', { number: '1' })))
+})
+
+describe('the Paste button', () => {
+  const pasteButton = (tree: ReactTestRenderer.ReactTestRenderer) =>
+    tree.root
+      .findAll(n => typeof n.props.onPress === 'function')
+      .find(n => n.findAllByType(Text).some(text => text.props.children === i18n.t('import.paste')))!
+
+  beforeEach(() => {
+    jest.mocked(Clipboard.setString).mockClear()
+  })
+
+  it('clears the clipboard as soon as the phrase is in the fields, with the screen still open', async () => {
+    jest.mocked(Clipboard.getString).mockResolvedValueOnce(PHRASE)
+    const tree = render()
+    await ReactTestRenderer.act(async () => {
+      await pasteButton(tree).props.onPress()
+    })
+    expect(cells(tree).slice(0, 12).map(c => c.props.value)).toEqual(PHRASE.split(' '))
+    expect(Clipboard.setString).toHaveBeenCalledTimes(1)
+    expect(Clipboard.setString).toHaveBeenCalledWith('')
+  })
+
+  it('leaves the clipboard alone when the read brings nothing', async () => {
+    jest.mocked(Clipboard.getString).mockResolvedValueOnce('')
+    const tree = render()
+    await ReactTestRenderer.act(async () => {
+      await pasteButton(tree).props.onPress()
+    })
+    expect(Clipboard.setString).not.toHaveBeenCalled()
+  })
 })

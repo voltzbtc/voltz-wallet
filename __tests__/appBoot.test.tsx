@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactTestRenderer from 'react-test-renderer'
 import App from '../App'
-import { settleActiveWallet } from '../src/wallet/wallet'
+import { eraseAllWallets, settleActiveWallet } from '../src/wallet/wallet'
 import { hasPin } from '../src/wallet/pin'
 import { I18nManager, Settings } from 'react-native'
 import RNRestart from 'react-native-restart'
@@ -19,7 +19,7 @@ jest.mock('../src/wallet/wallet', () => ({
   countUnconfirmedWallets: jest.fn(async () => 0),
   eraseAllWallets: jest.fn(async () => undefined),
 }))
-jest.mock('../src/wallet/pin', () => ({ hasPin: jest.fn(), savePin: jest.fn() }))
+jest.mock('../src/wallet/pin', () => ({ hasPin: jest.fn(), savePin: jest.fn(), pinWaitLeft: jest.fn(async () => 0) }))
 jest.mock('../src/wallet/walletRegistry', () => ({ getActiveWalletId: jest.fn() }))
 jest.mock('../src/wallet/settings', () => ({
   loadDisplayLanguage: jest.fn().mockResolvedValue(null),
@@ -207,6 +207,65 @@ describe('a boot whose Keychain entries no key here can open', () => {
       restore.props.onPress()
     })
     expect(texts(tree)).toContain(i18n.t('pin.unreadableBody'))
+    warn.mockRestore()
+  })
+
+  const unreadable = () => Object.assign(new Error('Decryption failed'), { code: 'E_CRYPTO_FAILED' })
+  const pressable = (tree: ReactTestRenderer.ReactTestRenderer, text: string) =>
+    tree.root.findAll(
+      node =>
+        typeof node.props.onPress === 'function' &&
+        (node.props.label === text || node.findAll(child => child.props.children === text).length > 0),
+    )
+  const settle = async () => {
+    for (let i = 0; i < 4; i++) {
+      await ReactTestRenderer.act(async () => {
+        await Promise.resolve()
+      })
+    }
+  }
+
+  // A Try again under way may yet open the wallets, so the erase is not offered beside it.
+  test('hides erase and restore while a Try again runs, and offers it again when that fails too', async () => {
+    jest.mocked(hasPin).mockRejectedValueOnce(unreadable())
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const tree = await boot()
+    expect(pressable(tree, i18n.t('welcome.bootRestore')).length).toBeGreaterThan(0)
+
+    let fail!: (err: unknown) => void
+    jest.mocked(hasPin).mockImplementationOnce(() => new Promise((_, reject) => (fail = reject)))
+    await ReactTestRenderer.act(async () => {
+      pressable(tree, i18n.t('common.retry'))[0].props.onPress()
+    })
+    await settle()
+    expect(pressable(tree, i18n.t('welcome.bootRestore'))).toHaveLength(0)
+
+    await ReactTestRenderer.act(async () => {
+      fail(unreadable())
+    })
+    await settle()
+    expect(pressable(tree, i18n.t('welcome.bootRestore')).length).toBeGreaterThan(0)
+    warn.mockRestore()
+  })
+
+  // The lock would ask for a PIN this phone cannot read.
+  test('an erase that fails stays on the boot failure, under the sheet and its error', async () => {
+    jest.mocked(hasPin).mockRejectedValueOnce(unreadable())
+    jest.mocked(eraseAllWallets).mockRejectedValueOnce(new Error('keystore unavailable'))
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const tree = await boot()
+    await ReactTestRenderer.act(async () => {
+      pressable(tree, i18n.t('welcome.bootRestore'))[0].props.onPress()
+    })
+    await ReactTestRenderer.act(async () => {
+      pressable(tree, i18n.t('pin.forgotErase'))[0].props.onPress()
+    })
+    await settle()
+
+    expect(eraseAllWallets).toHaveBeenCalledTimes(1)
+    expect(texts(tree)).toContain(i18n.t('pin.forgotFailed'))
+    expect(texts(tree)).toContain(i18n.t('welcome.bootUnreadable'))
+    expect(texts(tree)).not.toContain(i18n.t('pin.enter'))
     warn.mockRestore()
   })
 

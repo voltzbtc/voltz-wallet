@@ -222,3 +222,19 @@ export function classifyWalletError(cause: unknown): WalletErrorCode {
   }
   return 'unknown'
 }
+
+// What a log line may say about an error. A release build keeps its logs, and an error's message, an
+// SDK error's `inner` or a server's answer can carry an address, an amount or a name, so only the
+// kind is said: its name and its code or tag, never its message, and for a thrown value that is not
+// an object, only its type.
+export function errorKind(err: unknown): string {
+  if (typeof err !== 'object' || err === null) {
+    return typeof err
+  }
+  const { name, code, tag } = err as { name?: unknown; code?: unknown; tag?: unknown }
+  const parts = [name, code, tag].filter(
+    (part): part is string | number => typeof part === 'string' || typeof part === 'number',
+  )
+  // Bounded, since a name or a code is a label and anything longer is text that can carry anything.
+  return parts.length > 0 ? parts.map(part => String(part).slice(0, 40)).join(' ') : 'object'
+}

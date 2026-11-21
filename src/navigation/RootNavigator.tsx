@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { AppDrawer } from './AppDrawer'
 import { backToHomeTab } from './backToHomeTab'
 import type { HomeTabsParamList } from './HomeTabs'
-import { setDeeplinkHandler } from '../wallet/deeplink'
+import { releaseDeeplinksAfterUnlock, setDeeplinkHandler } from '../wallet/deeplink'
 import {
   setForegroundNoticeHandler,
   setPushHandler,
@@ -20,6 +20,7 @@ import {
 import { ForegroundNotice } from '../components/ForegroundNotice'
 import { useSettledSendNotice } from '../hooks/useSettledSendNotice'
 import { HeaderTitle } from '../components/HeaderTitle'
+import { useUnderLock } from '../components/UnderLock'
 import { ReceivedOverlayHost } from '../components/ReceivedOverlayHost'
 import { ReceiveScreen } from '../screens/ReceiveScreen'
 import { SendScreen } from '../screens/SendScreen'
@@ -190,10 +191,18 @@ export function RootNavigator(): React.JSX.Element {
     },
     [navRef],
   )
+  // Send reads the destination over the network as it opens, so a link that arrives under the PIN, or
+  // on a return whose lock is still being decided, waits in deeplink.ts and reaches Send once, after
+  // the unlock.
+  const underLock = useUnderLock()
   React.useEffect(() => {
+    if (underLock) {
+      return
+    }
     setDeeplinkHandler(goToSend)
+    releaseDeeplinksAfterUnlock()
     return () => setDeeplinkHandler(null)
-  }, [goToSend])
+  }, [goToSend, underLock])
 
   // A tapped notification needs the same stash for the same reason. The destination is one of the
   // words in the pushRoute table, never a field off the wire, which is what keeps navigate() out of
