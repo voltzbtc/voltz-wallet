@@ -33,19 +33,26 @@ jest.mock('../src/config', () => ({
   getBreezSparkApiKey: () => 'test-spark-api-key',
   getBreezLnurlDomain: () => undefined,
 }))
-jest.mock('../src/wallet/seed', () => ({
-  loadSeedFor: jest.fn(
-    async () =>
-      'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
-  ),
-  loadPassphraseFor: jest.fn(async () => undefined),
-  saveSeedFor: jest.fn(async () => undefined),
-  savePassphraseFor: jest.fn(async () => undefined),
-  deleteSeedFor: jest.fn(async () => undefined),
-  deletePassphraseFor: jest.fn(async () => undefined),
-  hasSeedFor: jest.fn(async () => true),
-  PRIMARY_ID: 'primary',
-}))
+// Every wallet holds its seed, and the id an add draws holds none until the add writes it, as the
+// Keychain answers.
+jest.mock('../src/wallet/seed', () => {
+  const saveSeedFor = jest.fn(async (_id: string, _words: string) => undefined)
+  return {
+    loadSeedFor: jest.fn(
+      async () =>
+        'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
+    ),
+    loadPassphraseFor: jest.fn(async () => undefined),
+    saveSeedFor,
+    savePassphraseFor: jest.fn(async () => undefined),
+    deleteSeedFor: jest.fn(async () => undefined),
+    deletePassphraseFor: jest.fn(async () => undefined),
+    hasSeedFor: jest.fn(
+      async (id: string) => id !== 'wallet-new' || saveSeedFor.mock.calls.some(([saved]) => saved === id),
+    ),
+    PRIMARY_ID: 'primary',
+  }
+})
 jest.mock('../src/wallet/walletRegistry', () => ({
   getActiveWalletId: jest.fn(async () => 'wallet-a'),
   ensureRegistered: jest.fn(async () => undefined),
