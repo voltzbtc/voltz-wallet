@@ -94,7 +94,7 @@
     "words_other": "{{count}} mots",
     "dice": "Générer avec des dés (avancé)",
     "bootFailed": "Les portefeuilles de cet appareil n'ont pas pu être ouverts pour le moment. Réessayez dans un instant ou écrivez à l'assistance.",
-    "bootUnreadable": "Les portefeuilles enregistrés ici ne peuvent pas être ouverts sur ce téléphone. Cela arrive quand les données de l'app ont été copiées depuis un autre téléphone.",
+    "bootUnreadable": "Les portefeuilles enregistrés ici n'ont pas pu être ouverts sur ce téléphone. Si « Réessayer » échoue encore, les données de l'app ont sans doute été copiées depuis un autre téléphone, et « Effacer et restaurer » permet de revenir.",
     "bootRestore": "Effacer et restaurer",
     "contactSupport": "Écrire à l'assistance",
     "terms": "En continuant, vous acceptez les <terms>Conditions d'utilisation</terms> et confirmez avoir lu la <privacy>Politique de confidentialité</privacy>."
@@ -377,6 +377,7 @@
     "wait": "Trop de PIN incorrects. Réessayez dans {{time}}.",
     "biometricPrompt": "Déverrouiller Voltz",
     "saveFailed": "Impossible d'enregistrer votre PIN sur cet appareil. Réessayez.",
+    "checkFailed": "Impossible de vérifier votre PIN sur cet appareil. Réessayez.",
     "forgot": "PIN oublié ?",
     "forgotTitle": "Effacer les portefeuilles pour revenir ?",
     "forgotBody": "Un PIN ne peut pas être récupéré. Le seul moyen de revenir est d'effacer tous les portefeuilles de cet appareil et de restaurer chacun avec sa phrase de récupération. Sans sa phrase de récupération, un portefeuille et tout son argent sont perdus pour de bon.",

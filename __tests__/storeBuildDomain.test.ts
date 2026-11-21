@@ -1,5 +1,5 @@
 import { liveStoreContext, openStoreOrder, recordSpendIntent, confirmStorePurchase } from '../src/wallet/storePurchase'
-import { walletPurchases } from '../src/wallet/withdrawal'
+import { requestWithdrawal, walletPurchases, type WalletPurchase } from '../src/wallet/withdrawal'
 import { connectedLnurlDomain } from '../src/wallet/spark'
 
 // A wallet on a domain of its own keeps addressing every store, credits and withdrawal request to the
@@ -60,4 +60,26 @@ test('the credits read and the purchases read go to the build domain', async () 
   const { deps: d, calls } = await deps({ credits: [], purchases: [] })
   await walletPurchases(d)
   expect(calls.map(c => c.url)).toEqual(['https://usevoltz.app/api/store/credits'])
+})
+
+test('a withdrawal goes to the build domain', async () => {
+  const { deps: d, calls } = await deps({ error: 'not_withdrawable' })
+  const purchase: WalletPurchase = {
+    paymentRef: 'google:GPA.0000-0000-0000-00000',
+    channel: 'google',
+    kind: 'name',
+    domain: OWN,
+    subject: 'padaria',
+    purchasedAt: 1_800_000_000,
+    withdrawableUntil: 1_801_209_600,
+    withdrawable: true,
+    transactionId: null,
+    amountSats: null,
+    withdrawal: null,
+  }
+  await requestWithdrawal(
+    { ...d, walletId: 'w1', connectedWalletId: () => 'w1', refundAddress: async () => '' },
+    { purchase, consent: false },
+  )
+  expect(calls.map(c => c.url)).toEqual(['https://usevoltz.app/api/purchase/withdraw'])
 })

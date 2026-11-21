@@ -79,6 +79,8 @@ trip at its limit raised no cover on the way out, so `PrivacyCover.onResume` cov
 figure (`OWN_LOCK_AFTER_MS`, which `__tests__/ownActivity.test.ts` holds equal). An activity whose
 bracket never closes leaves every later pause inside the bracket, so every trip is then timed against
 ten minutes and raises no cover on the way out, which is less than the two minute lock and never none.
+That lasts until the activity is destroyed: `PrivacyCover.release` sets the depth back to zero, since a
+destroyed activity gets none of the answers an open bracket waits for.
 
 ## Where the lock lands
 
@@ -91,6 +93,11 @@ ten minutes and raises no cover on the way out, which is less than the two minut
   goes back to `'locked'` and the PIN leads on as it does at boot. A step under way when the lock came
   back (an unlock still reading, the offer's write, the words' own write) lands on nothing past it.
 - **Before the first unlock**: nothing changes, and the cover comes down on the return.
+- **A `lightning:` link that arrives while the app is away** is held from the leave until the return's
+  lock decision. A return under the limit hands it to Send at once. A return that locks keeps it until
+  the PIN is passed, and then hands over only the latest link, once. An unlock that lands before the
+  decision releases nothing. `useRelock` sets and settles the hold, and `RootNavigator` releases it with
+  the handler it registers (`src/wallet/deeplink.ts`).
 
 Every lock moves a generation, and draws a keypad of its own keyed by it. A PIN or a biometric is
 checked after a read, which can answer once the app has left and a newer lock is up; the answer carries
@@ -103,7 +110,9 @@ has no navigator and draws no keypad until the erase ends, and the generation mo
 runs inside `whileSparkErasing`, which cuts every queued connect, waits for a `connectActiveSpark`
 already past its turn, and refuses every connect until the erase ends: the next first wallet takes the
 erased primary id, and a connection left on the erased seed would be kept for it. An erase that fails
-brings the keypad back with the sheet's error.
+brings the keypad back with the sheet's error. One started from the boot that could not read the
+wallets goes back to that screen instead, since its keypad would ask for a PIN the phone cannot read,
+and that screen hides Erase and restore while a Try again runs.
 
 ## What a biometric may stand in for
 
@@ -121,7 +130,13 @@ wallet. A biometric stands in for the PIN only where the passcode cannot release
   after any strong biometric or device credential, the lock screen's unlock included, and the library
   decrypts before it prompts, so unlocking the phone with its passcode and opening the app within five
   seconds released the PIN with no prompt. The pattern is the one in Android's biometric guide and in
-  Blockstream Green (`AndroidKeystore.kt`).
+  Blockstream Green (`AndroidKeystore.kt`). An invalidated key is found only when it is used, so after
+  a new enrollment the switch still reads on until the next biometric unlock, which fails, removes the
+  entry and takes the keypad's biometric key away; from then the switch shows off. Sealed bytes the key
+  cannot open (`AEADBadTagException`, left by an enroll whose prompt was cancelled) end the entry the
+  same way, while any other Keystore failure keeps it for the next unlock. A prompt asked for once the
+  app has left is refused at once as unavailable, since `BiometricPrompt` would never show it or
+  answer.
 - **The recovery words** always ask for the typed PIN, as Phoenix asks its own PIN before showing them
   (`DisplaySeedView.kt`). The words are the wallet, and no platform rule about biometrics should
   decide whether they show.
@@ -134,9 +149,18 @@ so ending the app mid-check still counted it. After five, each wrong PIN waits t
 before, from 30 s up to an hour, about 24 tries a day at the top; nothing is erased, as Phoenix erases
 nothing (`CheckPinViewModel.kt`). The wait runs on the process's steady clock, which Settings cannot
 move, and a new process waits the whole wait for the count again, so neither setting the clock forward
-nor closing the app shortens it. A right PIN, or a biometric, clears the count, and so does erasing
-the PIN. Every keypad that asks for the PIN shares it: the lock, the recovery words, changing the PIN
-and turning on biometric unlock.
+nor closing the app shortens it. That clock stops while the phone sleeps, so a wait counts only time
+awake and can run longer than its figure, never shorter. A right PIN, or a biometric, clears the count,
+and so does erasing the PIN. A biometric's clear waits for any check under way, which would otherwise
+write its count over it; erasing the PIN clears it at once, so an erase never waits on a check. Every
+keypad that asks for the PIN shares it: the lock, the recovery words, changing the PIN and turning on
+biometric unlock.
+
+The process keeps the count it read and every count it wrote, so a Keychain that fails on the count
+never takes the wait away. A count that cannot be read waits as the first wait does, as an unreadable
+one does, and one that cannot be written still counts for as long as the app runs. A check that fails
+anyway says so on the keypad and takes the next try. A PIN typed while a wait runs is refused without
+being compared, so it is not called wrong.
 
 ## Accepted residue
 
@@ -147,6 +171,10 @@ and turning on biometric unlock.
 - A person who waits out each wait while the keypad is open still gets about 24 tries a day.
 - iOS system sheets that are not presented controllers (the App Store purchase sheet, the passkey
   sheet) are not dismissed by the lock.
+- Forgot PIN erases every wallet with no device check where the device reports no lock to check: a
+  phone with no screen lock, and Android below 11, which react-native-keychain reports as having none
+  whatever is set (`passesDeviceCheck` in `src/wallet/biometrics.ts`). The erase reveals nothing, and
+  each wallet comes back from its recovery phrase.
 
 ## Only a device can confirm
 
@@ -157,8 +185,11 @@ and turning on biometric unlock.
 - The iOS clock keeps counting across a real sleep, and a date changed in Settings moves neither
   clock.
 - On Android, unlocking the phone with its passcode and opening the app at once shows the biometric
-  prompt, never the wallet; a fingerprint enrolled after biometric unlock was turned on turns it off;
-  and on iOS a face or finger enrolled afterwards does the same.
+  prompt, never the wallet; a fingerprint enrolled after biometric unlock was turned on makes the next
+  biometric unlock fail and remove the entry, after which the switch shows off; and on iOS a face or
+  finger enrolled afterwards does the same.
+- On Android, a cancelled re-enroll leaves an entry the next biometric unlock removes, and a biometric
+  prompt asked for while the app is in the background answers at once.
 - The biometric prompt over the lock, the photo picker and the store's sheet ask nothing on Android
   when answered within ten minutes, and Home pressed inside the photo picker with a return after ten
   minutes comes back covered and shows the PIN.

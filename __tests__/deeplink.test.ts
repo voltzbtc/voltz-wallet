@@ -1,4 +1,11 @@
-import { parseLightningDeeplink, routeLightningUrl, setDeeplinkHandler } from '../src/wallet/deeplink'
+import {
+  holdDeeplinks,
+  parseLightningDeeplink,
+  releaseDeeplinksAfterUnlock,
+  routeLightningUrl,
+  setDeeplinkHandler,
+  settleDeeplinkHold,
+} from '../src/wallet/deeplink'
 
 describe('parseLightningDeeplink', () => {
   it('returns the raw URI for a lightning: deep link', () => {
@@ -56,5 +63,46 @@ describe('deeplink router (stash + replay)', () => {
     setDeeplinkHandler(d => seen.push(d))
     setDeeplinkHandler(d => seen.push(d)) // a second registration must not re-fire
     expect(seen).toEqual(['lightning:second'])
+  })
+})
+
+describe('the hold over a return', () => {
+  afterEach(() => {
+    settleDeeplinkHold(false)
+    setDeeplinkHandler(() => undefined)
+    setDeeplinkHandler(null)
+  })
+
+  it('keeps a link from the leave to the decision, and lets it through when the return does not lock', () => {
+    const seen: string[] = []
+    setDeeplinkHandler(d => seen.push(d))
+    holdDeeplinks()
+    routeLightningUrl('lightning:lnbc1held')
+    expect(seen).toEqual([])
+    settleDeeplinkHold(false)
+    expect(seen).toEqual(['lightning:lnbc1held'])
+  })
+
+  // What reached the navigator before the decision was a PIN drawn before the leave.
+  it('is not cut short by an unlock while the decision is still to come', () => {
+    const seen: string[] = []
+    holdDeeplinks()
+    routeLightningUrl('lightning:lnbc1early')
+    setDeeplinkHandler(d => seen.push(d))
+    releaseDeeplinksAfterUnlock()
+    expect(seen).toEqual([])
+  })
+
+  it('keeps a link through a lock the decision drew, until the unlock, and hands it over once', () => {
+    const seen: string[] = []
+    setDeeplinkHandler(d => seen.push(d))
+    holdDeeplinks()
+    routeLightningUrl('lightning:lnbc1locked')
+    settleDeeplinkHold(true)
+    setDeeplinkHandler(d => seen.push(d))
+    expect(seen).toEqual([])
+    releaseDeeplinksAfterUnlock()
+    releaseDeeplinksAfterUnlock()
+    expect(seen).toEqual(['lightning:lnbc1locked'])
   })
 })

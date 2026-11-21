@@ -41,6 +41,9 @@ export function currentDomain(): string {
 // to keep: once it lapses or its DNS changes hands, whoever answers there would receive the wallet's
 // signed statements and answer a store confirm or a quote with whatever it likes. A frozen domain is
 // also off the edge, so a renewal sent there reaches nobody.
+//
+// A build without BREEZ_LNURL_DOMAIN, which only a development build is, has no build domain, so it
+// still addresses the domain in use, a customer's own hostname included.
 export async function currentDeps(): Promise<PurchaseDeps> {
   const domain = currentDomain()
   const { pubkey, sign } = await identitySigner()

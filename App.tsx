@@ -650,7 +650,8 @@ function App(): React.JSX.Element {
                             loading={!booted}
                           />
                         </View>
-                        {unreadable && (
+                        {/* Hidden while a Try again runs, which may yet open the wallets. */}
+                        {unreadable && booted && (
                           <Touch
                             onPress={() => {
                               setForgotReason('unreadable')
@@ -764,7 +765,14 @@ function App(): React.JSX.Element {
               reason={forgotReason}
               onClose={() => setForgot(false)}
               onErasing={eraseStarted}
-              onUnfinished={() => setErasing(false)}
+              onUnfinished={() => {
+                setErasing(false)
+                // The keypad would ask for a PIN this phone cannot read, so an erase that started on
+                // the boot's failure goes back there, under the sheet and its error.
+                if (forgotReason === 'unreadable') {
+                  setStage('bootFailed')
+                }
+              }}
               onErased={() => {
                 setForgot(false)
                 setErasing(false)

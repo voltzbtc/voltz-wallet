@@ -106,7 +106,7 @@ internal object PrivacyCover {
   // biometric or passkey prompt, the store's sheet), or the pause of a recreation for a configuration
   // change, raises nothing and is stamped apart, since nothing more is heard when Home is pressed inside
   // that activity: the JS side gives such a trip a longer limit, and an activity whose bracket never
-  // closes still leaves every trip timed.
+  // closes still leaves every trip timed, until its release closes the bracket.
   fun onPause(activity: Activity) {
     resumed = false
     leaves += 1
@@ -317,8 +317,12 @@ internal object PrivacyCover {
   private fun animationScale(context: Context): Float =
     Settings.Global.getFloat(context.contentResolver, Settings.Global.WINDOW_ANIMATION_SCALE, 1f).coerceAtLeast(0f)
 
-  // An activity destroyed while paused gets no return to lower its cover.
+  // An activity destroyed while paused gets no return to lower its cover. Nor does it get the result or
+  // the answer an open bracket waits for, so every bracket still open closes here; one that stayed open
+  // would time every later trip against the longer limit and raise no cover on the way out. A bracket
+  // that does end later finds the depth at zero, which endOwnActivity leaves as it is.
   fun release(activity: Activity) {
+    synchronized(stamp) { ownDepth = 0 }
     if (dialogActivity === activity) {
       dismissDialog()
     }

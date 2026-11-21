@@ -30,6 +30,21 @@ describe('newWalletId', () => {
   it('gives two wallets made in the same millisecond different ids', () => {
     expect(newWalletId()).not.toBe(newWalletId())
   })
+
+  it('refuses a draw that fell back to Math.random', () => {
+    const secure = jest.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation(array => {
+      const view = array as Uint8Array
+      for (let i = 0; i < view.length; i += 1) {
+        view[i] = Math.floor(Math.random() * 256)
+      }
+      return array
+    })
+    try {
+      expect(() => newWalletId()).toThrow('non-crypto RNG')
+    } finally {
+      secure.mockRestore()
+    }
+  })
 })
 
 describe('registerWallet', () => {

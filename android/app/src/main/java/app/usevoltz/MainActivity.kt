@@ -1,7 +1,9 @@
 package app.usevoltz
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.view.WindowManager
 import app.usevoltz.privacy.PrivacyCover
 import com.facebook.react.ReactActivity
@@ -20,12 +22,24 @@ class MainActivity : ReactActivity() {
   // background both do. Both paths were measured on an API 36 emulator, crashing with the state
   // passed and drawing the PIN screen again without it. React draws the screens again from JS. The
   // route the library's README documents keeps the state and sets RNScreensFragmentFactory instead.
+  //
+  // FLAG_SECURE does not reach accessibility services, which read the text of every view. From
+  // Android 14 a view marked accessibility data sensitive answers only services declared as
+  // accessibility tools (TalkBack, Switch Access, Voice Access), and a view's descendants inherit the
+  // mark (View.calculateAccessibilityDataSensitive). Marked on the decor before the window is attached,
+  // it covers every view the window draws, the window's scope as for FLAG_SECURE, so the recovery words
+  // and the passphrase carry it on every screen that draws them, whatever field or grid draws them. A
+  // React Native Modal is a window of its own that the mark does not reach, and none draws either;
+  // __tests__/androidActivity.test.ts holds that.
   override fun onCreate(savedInstanceState: Bundle?) {
     window.setFlags(
       WindowManager.LayoutParams.FLAG_SECURE,
       WindowManager.LayoutParams.FLAG_SECURE,
     )
     super.onCreate(null)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+      window.decorView.setAccessibilityDataSensitive(View.ACCESSIBILITY_DATA_SENSITIVE_YES)
+    }
   }
 
   // Stamps the leave and raises the cover before super, which is where React Native hears of the
