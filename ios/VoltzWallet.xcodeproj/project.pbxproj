@@ -19,6 +19,8 @@
 		C0A7F1D2E3B4C5D6E7F8A901 /* RCTNativeVoltzCapture.mm in Sources */ = {isa = PBXBuildFile; fileRef = C0A7F1D2E3B4C5D6E7F8A903 /* RCTNativeVoltzCapture.mm */; };
 		D1B8E2C3F4A5B6C7D8E9F001 /* RCTNativeVoltzQrImage.mm in Sources */ = {isa = PBXBuildFile; fileRef = D1B8E2C3F4A5B6C7D8E9F004 /* RCTNativeVoltzQrImage.mm */; };
 		D1B8E2C3F4A5B6C7D8E9F002 /* VoltzQrImageCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1B8E2C3F4A5B6C7D8E9F005 /* VoltzQrImageCore.swift */; };
+		A6E1A6E1A6E1A6E1A6E1A001 /* RCTNativeVoltzAge.mm in Sources */ = {isa = PBXBuildFile; fileRef = A6E1A6E1A6E1A6E1A6E1A004 /* RCTNativeVoltzAge.mm */; };
+		A6E1A6E1A6E1A6E1A6E1A002 /* VoltzAgeCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E1A6E1A6E1A6E1A6E1A005 /* VoltzAgeCore.swift */; };
 		D1B8E2C3F4A5B6C7D8E9F101 /* RCTNativeVoltzDurable.mm in Sources */ = {isa = PBXBuildFile; fileRef = D1B8E2C3F4A5B6C7D8E9F103 /* RCTNativeVoltzDurable.mm */; };
 		D7F04EE1EBA714E9167E30F1 /* RCTNativeVoltzStore.mm in Sources */ = {isa = PBXBuildFile; fileRef = EB2AE05E81B5A48DBBD91C52 /* RCTNativeVoltzStore.mm */; };
 		E2C9F3D4A5B6C7D8E9F0A101 /* RCTNativeVoltzPrivacy.mm in Sources */ = {isa = PBXBuildFile; fileRef = E2C9F3D4A5B6C7D8E9F0A103 /* RCTNativeVoltzPrivacy.mm */; };
@@ -79,6 +81,9 @@
 		D1B8E2C3F4A5B6C7D8E9F003 /* RCTNativeVoltzQrImage.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = RCTNativeVoltzQrImage.h; sourceTree = "<group>"; };
 		D1B8E2C3F4A5B6C7D8E9F004 /* RCTNativeVoltzQrImage.mm */ = {isa = PBXFileReference; includeInIndex = 1; path = RCTNativeVoltzQrImage.mm; sourceTree = "<group>"; };
 		D1B8E2C3F4A5B6C7D8E9F005 /* VoltzQrImageCore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoltzQrImageCore.swift; sourceTree = "<group>"; };
+		A6E1A6E1A6E1A6E1A6E1A003 /* RCTNativeVoltzAge.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = RCTNativeVoltzAge.h; sourceTree = "<group>"; };
+		A6E1A6E1A6E1A6E1A6E1A004 /* RCTNativeVoltzAge.mm */ = {isa = PBXFileReference; includeInIndex = 1; path = RCTNativeVoltzAge.mm; sourceTree = "<group>"; };
+		A6E1A6E1A6E1A6E1A6E1A005 /* VoltzAgeCore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoltzAgeCore.swift; sourceTree = "<group>"; };
 		D1B8E2C3F4A5B6C7D8E9F102 /* RCTNativeVoltzDurable.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = RCTNativeVoltzDurable.h; sourceTree = "<group>"; };
 		D1B8E2C3F4A5B6C7D8E9F103 /* RCTNativeVoltzDurable.mm */ = {isa = PBXFileReference; includeInIndex = 1; path = RCTNativeVoltzDurable.mm; sourceTree = "<group>"; };
 		D28215BB436DFFE7A983ABE2 /* RCTNativeVoltzStore.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = RCTNativeVoltzStore.h; sourceTree = "<group>"; };
@@ -128,6 +133,7 @@
 				CBBF7A962C4798953494DAEF /* Notifications */,
 				C0A7F1D2E3B4C5D6E7F8A904 /* Capture */,
 				D1B8E2C3F4A5B6C7D8E9F006 /* QrImage */,
+				A6E1A6E1A6E1A6E1A6E1A006 /* Age */,
 				D1B8E2C3F4A5B6C7D8E9F104 /* Durable */,
 				E2C9F3D4A5B6C7D8E9F0A104 /* Privacy */,
 				1F206ED51455E488D32F6ADD /* InfoPlist.strings */,
@@ -243,6 +249,17 @@
 			);
 			name = QrImage;
 			path = VoltzWallet/QrImage;
+			sourceTree = "<group>";
+		};
+		A6E1A6E1A6E1A6E1A6E1A006 /* Age */ = {
+			isa = PBXGroup;
+			children = (
+				A6E1A6E1A6E1A6E1A6E1A005 /* VoltzAgeCore.swift */,
+				A6E1A6E1A6E1A6E1A6E1A003 /* RCTNativeVoltzAge.h */,
+				A6E1A6E1A6E1A6E1A6E1A004 /* RCTNativeVoltzAge.mm */,
+			);
+			name = Age;
+			path = VoltzWallet/Age;
 			sourceTree = "<group>";
 		};
 		D1B8E2C3F4A5B6C7D8E9F104 /* Durable */ = {
@@ -487,6 +504,8 @@
 				C0A7F1D2E3B4C5D6E7F8A901 /* RCTNativeVoltzCapture.mm in Sources */,
 				D1B8E2C3F4A5B6C7D8E9F002 /* VoltzQrImageCore.swift in Sources */,
 				D1B8E2C3F4A5B6C7D8E9F001 /* RCTNativeVoltzQrImage.mm in Sources */,
+				A6E1A6E1A6E1A6E1A6E1A002 /* VoltzAgeCore.swift in Sources */,
+				A6E1A6E1A6E1A6E1A6E1A001 /* RCTNativeVoltzAge.mm in Sources */,
 				D1B8E2C3F4A5B6C7D8E9F101 /* RCTNativeVoltzDurable.mm in Sources */,
 				E2C9F3D4A5B6C7D8E9F0A101 /* RCTNativeVoltzPrivacy.mm in Sources */,
 				E2C9F3D4A5B6C7D8E9F0A106 /* VoltzPrivacyCover.swift in Sources */,
@@ -570,6 +589,8 @@
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
+					"-weak_framework",
+					DeclaredAgeRange,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = app.usevoltz;
 				PRODUCT_NAME = VoltzWallet;
@@ -602,6 +623,8 @@
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
+					"-weak_framework",
+					DeclaredAgeRange,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = app.usevoltz;
 				PRODUCT_NAME = VoltzWallet;

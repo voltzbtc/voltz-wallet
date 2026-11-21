@@ -61,6 +61,12 @@ beforeEach(() => {
   jest.requireMock('./specs/NativeVoltzPrivacy').device.reset()
 })
 
+// The stores' age signal, which marks nobody as regulated unless a test says otherwise.
+jest.mock('./specs/NativeVoltzAge')
+beforeEach(() => {
+  jest.requireMock('./specs/NativeVoltzAge').ageStore.reset()
+})
+
 // Home reads the update notice over the network once it is drawn, and every suite that renders it
 // stays off the network with no notice to show. __tests__/updateNotice.test.ts uses the real reader.
 jest.mock('./src/wallet/updateNotice', () => ({

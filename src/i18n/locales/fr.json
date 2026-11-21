@@ -1288,5 +1288,11 @@
     "unknownToken": "Un token que Voltz ne reconnaît pas",
     "unknownTokenAmount": "{{amount}} d'un token que Voltz ne reconnaît pas",
     "tokenAmountUnread": "Un montant en token"
+  },
+  "ageGate": {
+    "title": "Voltz est réservée aux 18 ans et plus",
+    "body": "Votre compte de la boutique d'applications indique que vous avez moins de 18 ans, donc aucun nouveau portefeuille ne peut être créé ni ajouté sur cet appareil.",
+    "contest": "Si votre âge est incorrect, corrigez-le dans votre compte de la boutique d'applications, puis rouvrez Voltz.",
+    "purchase": "Les achats sont réservés aux 18 ans et plus. Si votre âge est incorrect, corrigez-le dans votre compte de la boutique d'applications, puis rouvrez Voltz."
   }
 }

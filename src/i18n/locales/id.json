@@ -1278,5 +1278,11 @@
     "unknownToken": "Token yang tidak dikenali Voltz",
     "unknownTokenAmount": "{{amount}} dari token yang tidak dikenali Voltz",
     "tokenAmountUnread": "Jumlah dalam token"
+  },
+  "ageGate": {
+    "title": "Voltz untuk usia 18 tahun ke atas",
+    "body": "Akun toko aplikasi Anda menyatakan usia Anda di bawah 18 tahun, jadi dompet baru tidak dapat dibuat atau ditambahkan di perangkat ini.",
+    "contest": "Jika usia Anda salah, perbaiki di akun toko aplikasi Anda lalu buka Voltz lagi.",
+    "purchase": "Pembelian untuk usia 18 tahun ke atas. Jika usia Anda salah, perbaiki di akun toko aplikasi Anda lalu buka Voltz lagi."
   }
 }

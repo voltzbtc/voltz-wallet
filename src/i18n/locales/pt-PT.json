@@ -1288,5 +1288,11 @@
     "unknownToken": "Um token que a Voltz não reconhece",
     "unknownTokenAmount": "{{amount}} de um token que a Voltz não reconhece",
     "tokenAmountUnread": "Um valor em token"
+  },
+  "ageGate": {
+    "title": "A Voltz é para maiores de 18 anos",
+    "body": "A sua conta da loja de aplicações indica que tem menos de 18 anos, por isso não é possível criar nem adicionar uma carteira nova neste dispositivo.",
+    "contest": "Se a sua idade estiver errada, corrija-a na sua conta da loja de aplicações e abra a Voltz novamente.",
+    "purchase": "As compras são para maiores de 18 anos. Se a sua idade estiver errada, corrija-a na sua conta da loja de aplicações e abra a Voltz novamente."
   }
 }

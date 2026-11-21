@@ -1278,5 +1278,11 @@
     "unknownToken": "Voltz 無法識別的代幣",
     "unknownTokenAmount": "{{amount}}（Voltz 無法識別的代幣）",
     "tokenAmountUnread": "一筆代幣金額"
+  },
+  "ageGate": {
+    "title": "Voltz 僅供 18 歲以上人士使用",
+    "body": "你的應用程式商店帳戶顯示你未滿 18 歲，因此無法在這部裝置上建立或新增錢包。",
+    "contest": "如果年齡有誤，請在應用程式商店帳戶中更正，然後重新開啟 Voltz。",
+    "purchase": "購買僅限 18 歲以上人士。如果年齡有誤，請在應用程式商店帳戶中更正，然後重新開啟 Voltz。"
   }
 }

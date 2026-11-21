@@ -22,6 +22,7 @@ import {
   saveSeedFor,
 } from './seed'
 import { fingerprintFromMnemonicAsync } from './fingerprint'
+import { refuseMinor } from './ageSignal'
 import { deleteWalletImage } from './walletImage'
 import { carryWalletMeta } from './walletMeta'
 import { clearDeletionMark, clearImportCheck, noteImportCheck } from './deletionMark'
@@ -190,6 +191,9 @@ async function saveSeedMarked(
 // The same words and passphrase as a wallet already here are refused with WalletAlreadyAdded before
 // anything is written. The same words with another passphrase are another wallet and are added.
 //
+// A wallet not on the device is refused with AgeRefusal when the store's age signal says the person is
+// under 18 (ageSignal.ts), before anything is written. One already here is not new, and goes on.
+//
 // `origin` left out counts the words as shown and not proved, the safe side for a caller that forgets it.
 export async function addAndActivateWallet(
   mnemonic: string,
@@ -204,6 +208,7 @@ export async function addAndActivateWallet(
   if (twin) {
     throw new WalletAlreadyAdded(twin.id, twin.fingerprint)
   }
+  await refuseMinor()
   const id = (await lostEntryWith(wallets, fingerprint)) ?? newWalletId()
   await savePassphraseFor(id, passphrase ?? '')
   await saveSeedMarked(id, mnemonic, origin, fingerprint, note)
@@ -223,7 +228,8 @@ export async function addAndActivateWallet(
 // Keychain entry predates the registry, goes only to a registry with no wallet in it, and any other
 // wallet takes an id of its own rather than inheriting a lost wallet's records or slot. The same words
 // on a wallet that does have its seed are this write repeated after failing past its registry line, and
-// keep that line, or one key would be listed twice.
+// keep that line, or one key would be listed twice. Only that repeat goes on past a store's age signal
+// under 18 (ageSignal.ts); any other wallet is refused with AgeRefusal before anything is written.
 //
 // The passphrase is written before the seed. The seed is what makes a wallet exist at boot, so a kill
 // between the two leaves no wallet rather than one that opens without its passphrase, which is a
@@ -239,6 +245,9 @@ export async function addFirstWallet(
   const fingerprint = await fingerprintFromMnemonicAsync(mnemonic, passphrase)
   const { wallets } = await loadRegistry()
   const twin = await presentTwinOf(wallets, fingerprint, mnemonic, passphrase)
+  if (!twin) {
+    await refuseMinor()
+  }
   const id =
     twin?.id ?? (await lostEntryWith(wallets, fingerprint)) ?? (wallets.length === 0 ? PRIMARY_ID : newWalletId())
   await savePassphraseFor(id, passphrase ?? '')

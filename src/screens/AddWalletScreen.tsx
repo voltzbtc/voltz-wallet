@@ -23,6 +23,9 @@ import { ErrorBox } from '../components/ErrorBox'
 import type { RootStackParamList } from '../navigation/RootNavigator'
 import { rhythm, space } from '../theme'
 import { CenterStack, Screen } from '../components/Screen'
+import { AdultsOnly } from '../components/AdultsOnly'
+import { useMinorSignal } from '../hooks/useMinorSignal'
+import { isAgeRefusal } from '../wallet/ageSignal'
 import { Txt } from '../components/Txt'
 import { Touch } from '../components/Touch'
 
@@ -67,6 +70,7 @@ export function AddWalletScreen(): React.JSX.Element {
   const { t } = useTranslation()
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
   const [stage, setStage] = useState<Stage>('choose')
+  const minor = useMinorSignal()
   const [mnemonic, setMnemonic] = useState('')
   // A wallet already on this device with the same words and passphrase, named as the list names it
   // with its id, since a name left at the default tells two wallets apart by the id alone, and the
@@ -181,8 +185,14 @@ export function AddWalletScreen(): React.JSX.Element {
         setStage('twin')
         return
       }
-      console.warn(`wallet not added: ${(err as Error)?.message ?? String(err)}`)
       setMnemonic('')
+      // A refusal for age goes back to the choice, which the store's answer has already replaced. It is
+      // not logged, since a log of it would say the person's age.
+      if (isAgeRefusal(err)) {
+        setStage('choose')
+        return
+      }
+      console.warn(`wallet not added: ${(err as Error)?.message ?? String(err)}`)
       setStage('failed')
       return
     } finally {
@@ -208,6 +218,10 @@ export function AddWalletScreen(): React.JSX.Element {
       }
       setStage('leaving')
     } catch (err) {
+      if (isAgeRefusal(err)) {
+        setStage('choose')
+        return
+      }
       console.warn(`wallet not added: ${(err as Error)?.message ?? String(err)}`)
       setStage('failed')
     }
@@ -227,6 +241,16 @@ export function AddWalletScreen(): React.JSX.Element {
 
   if (stage === 'busy' || stage === 'leaving') {
     return <WalletRowsSkeleton />
+  }
+
+  // Every step before the write gives way when the store's age signal says the person is under 18. The
+  // wallets already on the device are not here, and keep working.
+  if (minor && stage !== 'failed') {
+    return (
+      <Screen layout="center">
+        <AdultsOnly />
+      </Screen>
+    )
   }
 
   if (stage === 'failed') {
