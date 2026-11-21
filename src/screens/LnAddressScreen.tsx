@@ -22,7 +22,7 @@ import {
 } from '../wallet/deletion'
 import { transferLnAddress } from '../wallet/lnTransfer'
 import { gatewayRefusal, moveRefusalKey } from '../wallet/lnRefusal'
-import { ReceiveHeldByExit } from '../wallet/errors'
+import { ReceiveHeldByExit, errorKind } from '../wallet/errors'
 import { phaseOf, readDomainState, type DomainState } from '../wallet/domainTier'
 import { reconnectActiveWallet, switchWalletAndConnect } from '../wallet/wallet'
 import { clearDomainFor, setDomainFor, storedDomainFor } from '../wallet/lnurlDomainPref'
@@ -269,13 +269,9 @@ export function LnAddressScreen(): React.JSX.Element {
       setPurchasesRead(n => n + 1)
     } catch (err) {
       // Moving is not creating, and the reason has to reach somewhere: swallowing it leaves a failed
-      // move with nothing to go on, on a screen that then blames address creation.
-      // An SDK error's message is only its class name, and the server's answer rides in `inner`.
-      console.warn(
-        'lightning address move refused:',
-        (err as Error)?.message ?? err,
-        (err as { inner?: unknown })?.inner ?? '',
-      )
+      // move with nothing to go on, on a screen that then blames address creation. Only its kind is
+      // logged, since the server's answer, which rides in `inner`, can carry a name.
+      console.warn(`lightning address move refused: ${errorKind(err)}`)
       // Only a reason the app has words for gets a second line. Anything else is somebody else's
       // wording, so the title stands alone and the raw text stays in the log.
       const key = moveRefusalKey(gatewayRefusal(err))

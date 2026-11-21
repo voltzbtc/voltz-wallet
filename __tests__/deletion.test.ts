@@ -165,7 +165,7 @@ beforeEach(async () => {
   mockActive = 'primary'
   global.fetch = fakeFetch as unknown as typeof fetch
   sdk.getInfo.mockResolvedValue({ identityPubkey: PUBKEY, balanceSats: 0n, tokenBalances: new Map() })
-  sdk.signMessage = jest.fn(async () => ({ signature: 'sig' }))
+  sdk.signMessage = jest.fn(async () => ({ signature: 'sig', pubkey: PUBKEY }))
   sdk.getLightningAddress.mockResolvedValue(undefined)
   sdk.checkLightningAddressAvailable.mockResolvedValue(true)
   sdk.registerLightningAddress.mockImplementation(async ({ username }: { username: string }) => ({

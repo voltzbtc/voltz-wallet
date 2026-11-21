@@ -771,6 +771,10 @@ delivery that never happened; a frozen domain is off the edge, so a renewal sent
 The gateway reads `host` from the body on those five routes (voltz-gateway `src/actedHost.ts`) and
 must be deployed before an app that sends it, or a wallet on its own domain is refused there.
 
+A build without `BREEZ_LNURL_DOMAIN`, which only a development build is, has no build domain, so
+`currentDeps` falls back to the domain in use and still sends these requests to a customer's own
+hostname.
+
 The line above Pay, that the purchase can be cancelled within 14 days here, is the app's own text and
 shows against any gateway. The rest depends on fields of the gateway's answers:
 

@@ -6,6 +6,7 @@ import { BackupScreen } from '../src/screens/BackupScreen'
 import { ImportScreen } from '../src/screens/ImportScreen'
 import { RecoveryPhraseScreen } from '../src/screens/RecoveryPhraseScreen'
 import { VerifyBackupScreen } from '../src/screens/VerifyBackupScreen'
+import { PassphraseScreen } from '../src/screens/PassphraseScreen'
 import { askedPosition, pickWord } from './support/backupQuiz'
 import { BackSlot } from '../src/components/BackHeader'
 import { loadPassphraseFor, loadSeedFor } from '../src/wallet/seed'
@@ -315,5 +316,117 @@ describe('the restore fields, where the words are typed', () => {
     await act(() => fields(tree)[0].props.onChangeText('abandon'))
     await act(() => device.screenshot())
     expect(texts(tree)).toContain(i18n.t('backup.screenshotTaken'))
+  })
+})
+
+describe('the passphrase step of a new wallet, where the field can be revealed', () => {
+  const fields = (tree: ReactTestRenderer.ReactTestRenderer) => tree.root.findAllByType(TextInput)
+
+  async function adding(): Promise<ReactTestRenderer.ReactTestRenderer> {
+    const tree = await renderOf(<PassphraseScreen onDone={jest.fn()} />)
+    const add = tree.root
+      .findAll(n => typeof n.props.onPress === 'function')
+      .find(n => n.findAllByType(Text).some(text => text.props.children === i18n.t('passphrase.add')))!
+    await act(() => add.props.onPress())
+    return tree
+  }
+
+  it('draws no field until the first read answers', async () => {
+    const tree = await adding()
+    expect(fields(tree)).toHaveLength(0)
+    await act(() => device.answer(false))
+    expect(fields(tree)).toHaveLength(1)
+  })
+
+  it('takes the field off with a recording, says why, and brings back what was typed', async () => {
+    const tree = await adding()
+    await act(() => device.answer(false))
+    await act(() => fields(tree)[0].props.onChangeText('segredo'))
+
+    await act(() => device.capturedChange(true))
+    expect(fields(tree)).toHaveLength(0)
+    expect(texts(tree)).toContain(i18n.t('backup.wordsHidden'))
+
+    await act(() => device.capturedChange(false))
+    expect(fields(tree)[0].props.value).toBe('segredo')
+    expect(texts(tree)).not.toContain(i18n.t('backup.wordsHidden'))
+  })
+
+  it('asks to delete a screenshot only once something is typed', async () => {
+    const tree = await adding()
+    await act(() => device.answer(false))
+    await act(() => device.screenshot())
+    expect(texts(tree)).not.toContain(i18n.t('backup.screenshotTaken'))
+
+    await act(() => fields(tree)[0].props.onChangeText('segredo'))
+    await act(() => device.screenshot())
+    expect(texts(tree)).toContain(i18n.t('backup.screenshotTaken'))
+  })
+})
+
+// A passphrase field can be revealed, so on every screen that has one it leaves with the words.
+describe('the passphrase fields beside the words', () => {
+  const fields = (tree: ReactTestRenderer.ReactTestRenderer) => tree.root.findAllByType(TextInput)
+  const pressText = async (tree: ReactTestRenderer.ReactTestRenderer, label: string) => {
+    const target = tree.root
+      .findAll(n => typeof n.props.onPress === 'function')
+      .find(n => n.findAllByType(Text).some(text => text.props.children === label))!
+    await act(() => target.props.onPress())
+  }
+
+  it('on the backup screen, leave with a recording and come back with what was typed', async () => {
+    const tree = await renderOf(
+      <BackupScreen mnemonic={PHRASE} length={12} passphrase onConfirm={jest.fn()} />,
+    )
+    await act(() => device.answer(false))
+    await pressText(tree, i18n.t('passphrase.add'))
+    expect(fields(tree)).toHaveLength(1)
+    await act(() => fields(tree)[0].props.onChangeText('segredo'))
+
+    await act(() => device.capturedChange(true))
+    expect(fields(tree)).toHaveLength(0)
+    expect(texts(tree)).toContain(i18n.t('backup.wordsHidden'))
+
+    await act(() => device.capturedChange(false))
+    expect(fields(tree)[0].props.value).toBe('segredo')
+  })
+
+  it('on the backup screen, wait for the first read', async () => {
+    const tree = await renderOf(
+      <BackupScreen mnemonic={PHRASE} length={12} passphrase onConfirm={jest.fn()} />,
+    )
+    await pressText(tree, i18n.t('passphrase.add'))
+    expect(fields(tree)).toHaveLength(0)
+  })
+
+  it('on the restore screen, leave with a recording and come back with what was typed', async () => {
+    const tree = await renderOf(<ImportScreen onImported={jest.fn()} initial={{ phrase: PHRASE, passphrase: '' }} />)
+    expect(fields(tree)).toHaveLength(0)
+    await act(() => device.answer(false))
+    const passField = () =>
+      fields(tree).find(c => c.props.placeholder === i18n.t('import.passphrasePlaceholder'))
+    await act(() => passField()!.props.onChangeText('segredo'))
+
+    await act(() => device.capturedChange(true))
+    expect(passField()).toBeUndefined()
+    expect(fields(tree)).toHaveLength(0)
+
+    await act(() => device.capturedChange(false))
+    expect(passField()!.props.value).toBe('segredo')
+  })
+
+  // The keyboard would otherwise come back on its own the moment a recording stops.
+  it('on the restore screen, come back waiting to be tapped', async () => {
+    const tree = await renderOf(<ImportScreen onImported={jest.fn()} />)
+    await act(() => device.answer(false))
+    const toggle = tree.root.find(n => n.props.accessibilityRole === 'switch' && n.props.onPress != null)
+    await act(() => toggle.props.onPress())
+    const passField = () =>
+      fields(tree).find(c => c.props.placeholder === i18n.t('import.passphrasePlaceholder'))
+    expect(passField()!.props.autoFocus).toBe(true)
+
+    await act(() => device.capturedChange(true))
+    await act(() => device.capturedChange(false))
+    expect(passField()!.props.autoFocus).toBe(false)
   })
 })

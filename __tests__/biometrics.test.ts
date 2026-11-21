@@ -362,6 +362,17 @@ describe('the Android module', () => {
     expect(module).not.toMatch(/DEVICE_CREDENTIAL/)
   })
 
+  // A prompt that never answers holds the unlock and the own-activity bracket around it, and an entry
+  // cleared on a failure that can pass turns biometric unlock off for nothing. Read from the source;
+  // the behaviour itself needs an emulator.
+  it('answers a prompt asked for once the app left, and ends an entry only when no key opens it', () => {
+    const module = read('android/app/src/main/java/app/usevoltz/biometric/NativeVoltzBiometricModule.kt')
+    expect(module).toMatch(/if \(activity\.supportFragmentManager\.isStateSaved\) \{\s*promise\.reject\(UNAVAILABLE/)
+    expect(module).toMatch(/catch \(error: AEADBadTagException\) \{(?:\s*\/\/[^\n]*\n)*\s*clear\(\)\s*promise\.reject\(INVALIDATED/)
+    expect(module).toMatch(/if \(invalidated\(error\)\) \{\s*clear\(\)\s*promise\.reject\(INVALIDATED[^}]*\} else \{\s*promise\.reject\(FAILED/)
+    expect(module).not.toMatch(/runCatching \{ keyStore\(\)\.getKey/)
+  })
+
   it('has one reader', () => {
     expect(
       sources('src').filter(path => read(path).includes('specs/NativeVoltzBiometric')).map((p: string) => relative('.', p)),

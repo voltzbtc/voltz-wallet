@@ -95,7 +95,7 @@
     "words_other": "{{count}} słowa",
     "dice": "Wygeneruj kostką (zaawansowane)",
     "bootFailed": "Nie udało się teraz otworzyć portfeli na tym urządzeniu. Spróbuj ponownie za chwilę albo napisz do pomocy.",
-    "bootUnreadable": "Portfeli zapisanych tutaj nie da się otworzyć na tym telefonie. Dzieje się tak, gdy dane aplikacji zostały skopiowane z innego telefonu.",
+    "bootUnreadable": "Nie udało się otworzyć na tym telefonie portfeli zapisanych tutaj. Jeśli „Spróbuj ponownie” wciąż zawodzi, dane aplikacji najpewniej skopiowano z innego telefonu, a drogą powrotu jest „Usuń i przywróć”.",
     "bootRestore": "Usuń i przywróć",
     "contactSupport": "Napisz do pomocy",
     "terms": "Kontynuując, akceptujesz <terms>Warunki korzystania</terms> i potwierdzasz zapoznanie się z <privacy>Polityką prywatności</privacy>."
@@ -380,6 +380,7 @@
     "wait": "Zbyt wiele nieprawidłowych kodów PIN. Spróbuj ponownie za {{time}}.",
     "biometricPrompt": "Odblokuj Voltz",
     "saveFailed": "Nie udało się zapisać PIN-u na tym urządzeniu. Spróbuj ponownie.",
+    "checkFailed": "Nie udało się sprawdzić PIN-u na tym urządzeniu. Spróbuj ponownie.",
     "forgot": "Nie pamiętasz PIN-u?",
     "forgotTitle": "Usunąć portfele, aby wrócić?",
     "forgotBody": "Nie da się odzyskać PIN-u. Jedyny sposób na powrót to usunięcie wszystkich portfeli z tego urządzenia i przywrócenie każdego z nich jego frazą odzyskiwania. Bez frazy odzyskiwania portfel i wszystkie jego pieniądze przepadają na zawsze.",

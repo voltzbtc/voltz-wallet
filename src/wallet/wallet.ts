@@ -122,9 +122,11 @@ async function presentTwinOf(
 // A listed wallet with these words whose seed is not on this device, as on an iPhone restored from
 // another device's backup. Saving the same words again takes its id, so the list keeps one row for the
 // wallet and everything this device keeps under that id (the domain, the remembered address,
-// settings, purchase proofs, deletion marks) stays with it. Different words never match, so they never
-// inherit a lost wallet's records. Only a listed entry with the same fingerprint is asked, and a read
-// that throws propagates before anything is written.
+// settings, purchase proofs, deletion marks) stays with it. The seed is gone, so the words cannot be
+// compared as presentTwinOf does, and the match is the four-byte fingerprint alone: different words
+// take a lost wallet's id, and its records, only on a fingerprint collision, about 1 in 2^32 for each
+// lost entry. Only a listed entry with the same fingerprint is asked, and a read that throws
+// propagates before anything is written.
 async function lostEntryWith(wallets: readonly WalletEntry[], fingerprint: string): Promise<string | undefined> {
   for (const w of wallets) {
     if (w.fingerprint === fingerprint && !(await hasSeedFor(w.id))) {
@@ -132,6 +134,23 @@ async function lostEntryWith(wallets: readonly WalletEntry[], fingerprint: strin
     }
   }
   return undefined
+}
+
+// An id no wallet here holds: not listed, and with no seed in the Keychain under it, which a kill
+// before the registry write can leave. The add writes the passphrase and the seed under its id with
+// no further check, so a taken id would replace another wallet's key. newWalletId keeps the time
+// prefix the repair orders by (repairRegistry). A read that throws propagates before anything is
+// written, and a Keychain that answers every id as taken stops the add rather than spin.
+const FRESH_ID_DRAWS = 8
+
+async function freshWalletId(wallets: readonly WalletEntry[]): Promise<string> {
+  for (let draw = 0; draw < FRESH_ID_DRAWS; draw++) {
+    const id = newWalletId()
+    if (!wallets.some(w => w.id === id) && !(await hasSeedFor(id))) {
+      return id
+    }
+  }
+  throw new Error('no free wallet id')
 }
 
 // Where a wallet's words came from, which decides what the add owes them.
@@ -204,7 +223,7 @@ export async function addAndActivateWallet(
   if (twin) {
     throw new WalletAlreadyAdded(twin.id, twin.fingerprint)
   }
-  const id = (await lostEntryWith(wallets, fingerprint)) ?? newWalletId()
+  const id = (await lostEntryWith(wallets, fingerprint)) ?? (await freshWalletId(wallets))
   await savePassphraseFor(id, passphrase ?? '')
   await saveSeedMarked(id, mnemonic, origin, fingerprint, note)
   await ensureRegistered(id, fingerprint)
@@ -240,7 +259,9 @@ export async function addFirstWallet(
   const { wallets } = await loadRegistry()
   const twin = await presentTwinOf(wallets, fingerprint, mnemonic, passphrase)
   const id =
-    twin?.id ?? (await lostEntryWith(wallets, fingerprint)) ?? (wallets.length === 0 ? PRIMARY_ID : newWalletId())
+    twin?.id ??
+    (await lostEntryWith(wallets, fingerprint)) ??
+    (wallets.length === 0 ? PRIMARY_ID : await freshWalletId(wallets))
   await savePassphraseFor(id, passphrase ?? '')
   await saveSeedMarked(id, mnemonic, origin, fingerprint, note)
   await ensureRegistered(id, fingerprint)

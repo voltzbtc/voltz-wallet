@@ -1,5 +1,6 @@
 import RNFS from 'react-native-fs'
 import { hasSeedFor } from './seed'
+import { secureBytes, toHex } from './secureRandom'
 import { asideExists, isUnreadableFile, readDurable, serialQueue, setAside, writeDurable } from './durableFile'
 
 // Which wallets exist on this device and which is active. Nothing sensitive lives here, only a
@@ -10,14 +11,12 @@ export type Registry = { wallets: WalletEntry[]; active: string | null }
 const FILE = `${RNFS.DocumentDirectoryPath}/wallets.json`
 const EMPTY: Registry = { wallets: [], active: null }
 
-// Time-based, since a fingerprint is not stable per wallet (a BIP39 passphrase derives another). The
-// id holds no secret, and its tail still comes from the secure source the seed uses, so the wallet
-// code has a single kind of randomness to audit.
+// Time-based, since a fingerprint is not stable per wallet (a BIP39 passphrase derives another), and
+// the boot's repair of an unreadable list orders wallets by it. The id holds no secret, and its tail
+// still comes from the secure source the seed uses (secureBytes), so the wallet code has a single
+// kind of randomness to audit.
 export function newWalletId(): string {
-  const bytes = new Uint8Array(4)
-  globalThis.crypto.getRandomValues(bytes)
-  const tail = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
-  return `w_${Date.now().toString(36)}${tail}`
+  return `w_${Date.now().toString(36)}${toHex(secureBytes(4, 'a wallet id'))}`
 }
 
 export function registerWallet(reg: Registry, id: string, fingerprint: string): Registry {

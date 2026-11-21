@@ -33,7 +33,7 @@ source from Spark or Breez. It is the most consequential question on the list.
 This is the only vector with exactly the shape of the Coldcard seed-generation bug that no code in
 the app can see. A badly seeded `SecureRandom` or a broken `SecRandomCopyBytes` produces a
 predictable seed without ever calling `Math.random` and without leaving a tail of zeros, and it
-passes every guard in `wallet/seed.ts`.
+passes every guard in `wallet/seed.ts` and `wallet/secureRandom.ts`.
 
 **It cannot be mitigated in JS.** What actually resolves it is independent entropy supplied by the
 user, which is what saved the Coldcard users who used dice

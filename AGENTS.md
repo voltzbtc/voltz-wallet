@@ -67,6 +67,7 @@ src/
   wallet/               logic kept out of components and tested directly (dollarMode.tsx is its one React module)
     spark.ts passkey.ts the only modules that import the Breez SDK, passkey.ts alone for its passkey provider
     seed.ts             BIP39 generation, validation and Keychain storage
+    secureRandom.ts     the one source of random bytes, which refuses a draw that touched Math.random
     wallet.ts           wallet lifecycle over walletRegistry.ts (add, switch, remove)
     amount.ts fiat.ts   amount parsing, fiat conversion and formatting for any currency code
     tokens.ts assets.ts known Spark tokens, the Home asset list and its order
@@ -175,7 +176,10 @@ Each of these breaks something without breaking the suite.
   screen that draws words goes through `useScreenCapture`, which keeps them off the tree until the
   first read answers and while the screen is recorded or mirrored, and takes the confirm with them.
   A screenshot cannot be undone, only asked to be deleted. Android has no such module, so its words
-  are drawn at once.
+  are drawn at once. From API 34 the activity window is also accessibility data sensitive
+  (`MainActivity`), so only services declared as accessibility tools read its text; React Native
+  copies `FLAG_SECURE` into a Modal window but not that mark, so words and passphrases never go in a
+  Modal, which `__tests__/androidActivity.test.ts` holds.
 - **A decoded image is a scanned code.** Text from `src/wallet/qrImage.ts` goes through `submit` in
   `ScanScreen`, never to a confirm, and an image with two different codes answers neither. ML Kit
   comes from VisionCamera's `implementation`, so the app compiles against it with a `compileOnly` at
@@ -240,9 +244,11 @@ Each of these breaks something without breaking the suite.
   rejects with `E_CRYPTO_FAILED`; the boot moves nothing on it, since a passing Keystore fault answers
   the same, and its error screen says what happened and offers the Forgot PIN erase.
   The SDK's own folder (`Documents/spark`), with the payments, the contacts and the address in the
-  clear, is flagged out of backups at every connect, so it never crosses; the network gives it back.
-  The registry and `passkey-wallets.json` still cross, since they hold ids and fingerprints, not
-  payments, and the words of a listed wallet take its id back only because the list crossed.
+  clear, is flagged out of backups at every connect, so a backup taken after one leaves it out; the
+  network gives it back. Every other file in Documents still crosses, the registry and
+  `passkey-wallets.json` among them, and the words of a listed wallet take its id back only because
+  the list crossed. What each of those files holds is listed in
+  [docs/trust-model.md](docs/trust-model.md).
 - **A file whose loss costs wallets or money is never written in place.** Android's `writeFile`
   truncates before it writes, so a process killed mid write leaves the file torn, and a reader that
   takes an unreadable file for an empty one hands the next writer an empty start to write over. Such

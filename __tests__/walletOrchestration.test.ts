@@ -14,6 +14,7 @@ import {
 } from '../src/wallet/webhookSecret'
 import {
   addAndActivateWallet,
+  addFirstWallet,
   switchWalletWithoutReconnecting,
   switchWalletAndConnect,
   onActiveWalletChanged,
@@ -30,6 +31,7 @@ import {
   ensureRegistered,
   setActiveWallet,
   loadRegistry,
+  newWalletId,
   removeWalletEntry,
 } from '../src/wallet/walletRegistry'
 import { fingerprintFromMnemonic, fingerprintFromMnemonicAsync } from '../src/wallet/fingerprint'
@@ -82,8 +84,11 @@ const MNEMONIC =
 
 beforeEach(() => {
   jest.clearAllMocks()
-  // Every wallet holds its seed unless a test says otherwise.
-  jest.mocked(hasSeedFor).mockResolvedValue(true)
+  // Every wallet holds its seed unless a test says otherwise, and the id an add draws holds none until
+  // the add writes it, as the Keychain answers.
+  jest
+    .mocked(hasSeedFor)
+    .mockImplementation(async id => id !== 'w_new' || jest.mocked(saveSeedFor).mock.calls.some(([saved]) => saved === id))
 })
 
 describe('addAndActivateWallet', () => {
@@ -121,6 +126,52 @@ describe('addAndActivateWallet', () => {
 
     expect(order).toEqual(['set w_new', 'heard w_new'])
     off()
+  })
+})
+
+describe('the id a new wallet takes', () => {
+  // clearAllMocks keeps queued once values, so a draw one case left unread would answer the next.
+  beforeEach(() => {
+    jest.mocked(newWalletId).mockReset().mockReturnValue('w_new')
+    jest.mocked(loadRegistry).mockReset().mockResolvedValue({ wallets: [], active: null })
+  })
+
+  // A wallet listed under `w_new`, with its seed here. A second add drawing the same id would write over it.
+  test('is drawn again while a listed wallet holds it, and never writes over that wallet', async () => {
+    jest.mocked(loadRegistry).mockResolvedValueOnce({ wallets: [{ id: 'w_new', fingerprint: 'fp-other' }], active: 'w_new' })
+    jest.mocked(newWalletId).mockReturnValueOnce('w_new').mockReturnValueOnce('w_free')
+    jest.mocked(hasSeedFor).mockImplementation(async id => id !== 'w_free' || jest.mocked(saveSeedFor).mock.calls.length > 0)
+
+    expect(await addAndActivateWallet(MNEMONIC, 'hunter2')).toBe('w_free')
+
+    expect(jest.mocked(saveSeedFor).mock.calls.map(([id]) => id)).toEqual(['w_free'])
+    expect(jest.mocked(savePassphraseFor).mock.calls.map(([id]) => id)).toEqual(['w_free'])
+  })
+
+  // A kill between the seed and the registry write leaves a seed no entry names.
+  test('is drawn again while the Keychain holds a seed under it that no entry names', async () => {
+    jest.mocked(newWalletId).mockReturnValueOnce('w_orphan').mockReturnValueOnce('w_free')
+    jest.mocked(hasSeedFor).mockImplementation(async id => id === 'w_orphan' || jest.mocked(saveSeedFor).mock.calls.length > 0)
+
+    expect(await addAndActivateWallet(MNEMONIC)).toBe('w_free')
+    expect(jest.mocked(saveSeedFor).mock.calls.map(([id]) => id)).toEqual(['w_free'])
+  })
+
+  test('the first-run add checks it as well, when lost wallets are listed', async () => {
+    jest.mocked(loadRegistry).mockResolvedValueOnce({ wallets: [{ id: 'w_lost', fingerprint: 'fp-other' }], active: 'w_lost' })
+    jest.mocked(newWalletId).mockReturnValueOnce('w_orphan').mockReturnValueOnce('w_free')
+    jest.mocked(hasSeedFor).mockImplementation(async id => id === 'w_orphan' || (id === 'w_free' && jest.mocked(saveSeedFor).mock.calls.length > 0))
+
+    expect(await addFirstWallet(MNEMONIC, undefined, 'typed')).toBe('w_free')
+    expect(jest.mocked(saveSeedFor).mock.calls.map(([id]) => id)).toEqual(['w_free'])
+  })
+
+  test('a Keychain that answers every id as taken stops the add before anything is written', async () => {
+    jest.mocked(hasSeedFor).mockResolvedValue(true)
+
+    await expect(addAndActivateWallet(MNEMONIC)).rejects.toThrow('no free wallet id')
+    expect(saveSeedFor).not.toHaveBeenCalled()
+    expect(savePassphraseFor).not.toHaveBeenCalled()
   })
 })
 

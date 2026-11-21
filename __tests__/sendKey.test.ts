@@ -32,3 +32,18 @@ test('no getRandomValues, no key, so the send goes without one', () => {
     Object.defineProperty(globalThis, 'crypto', { value: crypto, configurable: true })
   }
 })
+
+test('a draw that fell back to Math.random gives no key, as no getRandomValues does', () => {
+  const spy = jest.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation(array => {
+    const view = array as Uint8Array
+    for (let i = 0; i < view.length; i += 1) {
+      view[i] = Math.floor(Math.random() * 256)
+    }
+    return array
+  })
+  try {
+    expect(mintSendKey()).toBeUndefined()
+  } finally {
+    spy.mockRestore()
+  }
+})

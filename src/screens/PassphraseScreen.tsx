@@ -9,6 +9,8 @@ import { Txt } from '../components/Txt'
 import { Touch } from '../components/Touch'
 import { PassphraseField } from '../components/PassphraseField'
 import { ScreenTitle } from '../components/ScreenTitle'
+import { CaptureNotice } from '../components/CaptureNotice'
+import { useScreenCapture } from '../hooks/useScreenCapture'
 
 type Props = {
   // Receives '' for no passphrase. The caller is what persists it.
@@ -25,6 +27,8 @@ export function PassphraseScreen({ onDone, onBack, headerTitled = false }: Props
   const { t } = useTranslation()
   const [adding, setAdding] = useState(false)
   const [pass, setPass] = useState('')
+  // The field can be revealed, so it leaves the screen while it is recorded or mirrored, as the words do.
+  const capture = useScreenCapture(pass.length > 0)
 
   const canContinue = !adding || pass.length > 0
 
@@ -73,7 +77,8 @@ export function PassphraseScreen({ onDone, onBack, headerTitled = false }: Props
         <Txt role="caption">{t('passphrase.warning')}</Txt>
       </Notice>
 
-      {adding && <PassphraseField value={pass} onChangeText={setPass} />}
+      {adding && <CaptureNotice capture={capture} style={styles.captureNotice} />}
+      {adding && capture.phase === 'shown' && <PassphraseField value={pass} onChangeText={setPass} />}
     </Screen>
   )
 }
@@ -81,6 +86,9 @@ export function PassphraseScreen({ onDone, onBack, headerTitled = false }: Props
 const styles = StyleSheet.create({
   warningBox: {
     marginBottom: space.xl,
+  },
+  captureNotice: {
+    marginBottom: space.lg,
   },
   footer: {
     padding: space.xl,

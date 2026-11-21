@@ -26,10 +26,11 @@ const ASKED = '/mock/Documents/purchase-asked.json'
 
 type Instance = ReturnType<typeof instance>
 
+// The SDK answers each signature with the key that made it, its identity key.
 function instance(pubkey: string, signature: string) {
   return {
     getInfo: jest.fn(async () => ({ identityPubkey: pubkey, balanceSats: 0n, tokenBalances: new Map() })),
-    signMessage: jest.fn(async () => ({ signature })),
+    signMessage: jest.fn(async () => ({ signature, pubkey })),
     disconnect: jest.fn(async () => undefined),
   }
 }
@@ -174,6 +175,16 @@ describe('a pair built on one connection', () => {
     answer()
     expect(await signing).toBe('sig-a')
     expect(b.signMessage).not.toHaveBeenCalled()
+  })
+
+  test('a signature the SDK says another key made is refused, never sent beside the pubkey asked', async () => {
+    a.signMessage.mockResolvedValueOnce({ signature: 'sig-other', pubkey: '02bb' })
+    await expect(sparkSignMessage('m', '02aa')).rejects.toThrow('spark connected as another identity')
+  })
+
+  test('the key the SDK answers is compared without regard to case', async () => {
+    a.signMessage.mockResolvedValueOnce({ signature: 'sig-a', pubkey: '02AA' })
+    expect(await sparkSignMessage('m', '02aa')).toBe('sig-a')
   })
 
   test('after a disconnect is refused as without a connection', async () => {
