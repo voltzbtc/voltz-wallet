@@ -185,6 +185,12 @@ dependencies {
     // request to people Play marks as regulated. gradle/verification-metadata.xml pins its checksums.
     implementation("com.google.android.play:age-signals:0.0.6")
 
+    // The Play In-App Review API for the review card asked after a wallet's first receive
+    // (android/app/src/main/java/app/usevoltz/review). Exact version; what it brings (core-common,
+    // play-services-tasks and basement) age-signals already brings. gradle/verification-metadata.xml
+    // pins its checksums.
+    implementation("com.google.android.play:review:2.0.2")
+
     // The QR reader for a picked image (android/app/src/main/java/app/usevoltz/qrimage) compiles against
     // the ML Kit artifact VisionCamera already puts in the APK. VisionCamera declares it `implementation`,
     // which stays off this module's compile classpath, and compileOnly adds nothing to what ships. The
