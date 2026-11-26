@@ -10,6 +10,7 @@ import app.usevoltz.privacy.NativeVoltzPrivacyPackage
 import app.usevoltz.review.NativeVoltzReviewPackage
 import app.usevoltz.qrimage.NativeVoltzQrImagePackage
 import app.usevoltz.restart.VoltzRestartPackage
+import app.usevoltz.share.NativeVoltzSharePackage
 import app.usevoltz.store.NativeVoltzStorePackage
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
@@ -33,6 +34,7 @@ class MainApplication : Application(), ReactApplication {
           add(NativeVoltzBiometricPackage())
           add(NativeVoltzAgePackage())
           add(NativeVoltzReviewPackage())
+          add(NativeVoltzSharePackage())
         },
     )
   }

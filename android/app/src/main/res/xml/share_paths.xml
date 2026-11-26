@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The one folder ShareFileProvider serves: the cache's share folder, where src/wallet/addressCard.ts
+     writes the address card and nothing else. -->
+<paths>
+    <cache-path name="share" path="share/" />
+</paths>
