@@ -63,7 +63,8 @@ App.tsx                 boot, PIN gate, RTL direction check
 src/
   config.ts             the only module that reads '@env'
   theme.ts              design tokens (space, radius, colors, font, touch, motion)
-  i18n/                 i18next setup, languages.ts (picker list, isRTL), pluralRules.ts, locales/ with 24 locales
+  i18n/                 i18next setup, languages.ts (picker list, isRTL), pluralRules.ts, locales/ with 24 locales,
+                        reviewers.ts (the translation reviewers who agreed to be named on the picker)
   wallet/               logic kept out of components and tested directly (dollarMode.tsx is its one React module)
     spark.ts passkey.ts the only modules that import the Breez SDK, passkey.ts alone for its passkey provider
     seed.ts             BIP39 generation, validation and Keychain storage
