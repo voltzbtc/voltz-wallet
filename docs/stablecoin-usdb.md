@@ -11,6 +11,12 @@ The only dollar stablecoin on Spark is **USDB**, issued by **Brale** (a licensed
 which returns a single token. The stable balance stays on USDB alone (`buildConfig` passes it by name, never the whole
 registry, because the SDK refuses two tokens under one label).
 
+**USDB can be frozen by its issuer; DePix cannot.** Measured on 26/11/2026 with `getTokensMetadata` on
+mainnet, and the same on Sparkscan: USDB answers `isFreezable: true` (issuer key `024137d3a0a6...`), so
+Brale can freeze USDB in any Spark wallet; DePix answers `isFreezable: false` (issuer key
+`036a10a09b8f...`). Voltz holds no key that can freeze a token. No copy, in the app or outside it, may
+say that a token cannot be frozen unless its flag says so.
+
 **There is no USDT on Spark.** "Native USDT on Bitcoin" refers to **RGB**, a different protocol,
 unrelated to Spark. USDC and USDT appear in the app only on **cross-chain routes**, as a
 send destination or as a receive source converted on arrival, never as a balance.
