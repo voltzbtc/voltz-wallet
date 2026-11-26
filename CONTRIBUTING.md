@@ -93,6 +93,40 @@ xcrun simctl io booted screenshot ./photos/iphone.png
 A black photo is a failed photo, not a dark screen: open it before attaching it. Use a test wallet,
 never one that holds a real phrase, and keep amounts, addresses and words out of what is attached.
 
+## Translations
+
+The app ships in 24 languages. Every string a person sees is in `src/i18n/locales/<code>.json`, one
+file per language, translated from `en-US.json`. A review by a native speaker is welcome for any of
+them, and most of all for Thai, Arabic, Hebrew, Hindi, Urdu, Korean, Turkish and German. There are
+two ways to send one.
+
+- **A pull request** that changes the file of your language. Open it with the translation template,
+  which lists what to check, by adding `?quick_pull=1&template=translation.md` to the compare
+  address, as in
+  `https://github.com/voltzbtc/voltz-wallet/compare/main...your-name:your-branch?quick_pull=1&template=translation.md`.
+  A maintainer adds the `translation` label, which GitHub lets only people with access to the
+  repository set.
+- **An email** to support@usevoltz.app, naming the language, with the corrections as an edited copy
+  of the file or as a list of the strings and what each should say. A maintainer opens the pull
+  request from it. Sending corrections this way means you accept the contributor terms above for
+  them, as a pull request does.
+
+Every pull request has to pass `__tests__/locales.test.ts`, which CI runs, and which you can run
+yourself with `npx jest __tests__/locales.test.ts` after Setting up. It holds each locale to the keys
+and placeholders of `en-US.json`, to the plural forms its language uses, to no em dash, and to none
+of the words its language uses for banking, deposits, withdrawals, trading, exchanges or brokers,
+which the app never says because it holds nobody's money ([docs/principles.md](docs/principles.md)).
+The rules for strings, plurals and right-to-left languages are in [docs/i18n.md](docs/i18n.md).
+
+A reviewer does not need to build the app or attach photos. The maintainer who merges a translation
+takes the before and after photos of the screens whose text changed.
+
+**Credit.** A reviewer who agrees is named on the app's language screen, beside the language, and on
+the site, under the name or handle they choose and, if they want one, a link to a public profile on
+GitHub, X, Telegram or Nostr (through njump.me). Nobody is named without consent in writing: tick the
+credit box in the translation template, or say so in the email, with the name to show. The list lives
+in `src/i18n/reviewers.ts`, and an entry comes out whenever its person asks.
+
 ## Tests
 
 - New logic comes with tests that validate it, including invalid input and edge cases.
