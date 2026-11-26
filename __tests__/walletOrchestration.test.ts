@@ -561,6 +561,14 @@ describe('removeWallet', () => {
     expect(JSON.parse(await RNFS.readFile(`${DOCS}/token-prefs.json`, 'utf8'))).toEqual({ wallets: { w_kept: lists } })
   })
 
+  test("drops the removed wallet's review ask and keeps every other wallet's", async () => {
+    await RNFS.writeFile(`${DOCS}/store-review.json`, JSON.stringify({ asked: ['w_gone', 'w_kept'] }), 'utf8')
+
+    await removeWallet('w_gone', 'fp')
+
+    expect(JSON.parse(await RNFS.readFile(`${DOCS}/store-review.json`, 'utf8'))).toEqual({ asked: ['w_kept'] })
+  })
+
   test("drops the removed wallet's pending sends and keeps every other wallet's", async () => {
     await notePendingSend('w_gone', 'pay-gone')
     await notePendingSend('w_kept', 'pay-kept')
