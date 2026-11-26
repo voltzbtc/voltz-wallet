@@ -730,3 +730,65 @@ test.each(['zh', 'zh-TW'])('%s puts no ASCII comma beside a Han character', code
     .map(([key]) => key)
   expect(slips).toEqual([])
 })
+
+// Flashnet pays the USDB rewards and sets their rate and rules, which it can change or end, so the app
+// states the payment as Flashnet's and draws no rate, no hour and no claim about what moves the rate
+// (docs/stablecoin-usdb.md). Per locale: the phrases the line must carry (the bitcoin it pays in, the
+// day it pays on, that it can change or end, the cut Voltz does not take), and the word for volume.
+const REWARDS_NOTICE: Record<string, { says: string[]; volume: string }> = {
+  'en-US': { says: ['bitcoin', 'every day', 'can change or end', 'no part and no cut'], volume: 'volume' },
+  'en-GB': { says: ['bitcoin', 'every day', 'can change or end', 'no part and no cut'], volume: 'volume' },
+  'pt-BR': { says: ['bitcoin', 'todo dia', 'podem mudar ou acabar', 'não fica com nada'], volume: 'volume' },
+  'pt-PT': { says: ['bitcoin', 'todos os dias', 'podem mudar ou terminar', 'não fica com nada'], volume: 'volume' },
+  es: { says: ['bitcoin', 'cada día', 'pueden cambiar o terminar', 'ni se queda con nada'], volume: 'volumen' },
+  'es-MX': { says: ['bitcoin', 'cada día', 'pueden cambiar o terminar', 'ni se queda con nada'], volume: 'volumen' },
+  fr: { says: ['bitcoin', 'chaque jour', 'peuvent changer ou prendre fin', 'aucune commission'], volume: 'volume' },
+  'fr-CA': { says: ['bitcoin', 'chaque jour', 'peuvent changer ou prendre fin', 'aucune commission'], volume: 'volume' },
+  de: { says: ['Bitcoin', 'jeden Tag', 'ändern oder enden', 'behält nichts ein'], volume: 'volumen' },
+  it: { says: ['bitcoin', 'ogni giorno', 'possono cambiare o terminare', 'alcuna commissione'], volume: 'volume' },
+  pl: { says: ['bitcoin', 'codziennie', 'zmienić lub zakończyć', 'nie pobiera prowizji'], volume: 'wolumen' },
+  ru: { says: ['bitcoin', 'каждый день', 'измениться или прекратиться', 'не берёт комиссию'], volume: 'объём' },
+  tr: { says: ['bitcoin', 'her gün', 'değişebilir ya da sona erebilir', 'kesinti almaz'], volume: 'hacm' },
+  id: { says: ['bitcoin', 'setiap hari', 'berubah atau berakhir', 'tidak mengambil potongan'], volume: 'volume' },
+  vi: { says: ['bitcoin', 'mỗi ngày', 'thay đổi hoặc chấm dứt', 'không lấy phần nào'], volume: 'khối lượng' },
+  ja: { says: ['ビットコイン', '毎日', '変更または終了', '手数料も取りません'], volume: 'ボリューム' },
+  ko: { says: ['bitcoin', '매일', '변경되거나 종료', '수수료도 받지 않습니다'], volume: '볼륨' },
+  zh: { says: ['比特币', '每天', '变更或终止', '不抽成'], volume: '业务量' },
+  'zh-TW': { says: ['比特幣', '每天', '變更或終止', '不抽成'], volume: '業務量' },
+  th: { says: ['bitcoin', 'ทุกวัน', 'เปลี่ยนแปลงหรือสิ้นสุด', 'ไม่หักส่วนแบ่ง'], volume: 'ปริมาณ' },
+  hi: { says: ['bitcoin', 'हर दिन', 'बदल सकते हैं या ख़त्म हो सकते हैं', 'न कोई हिस्सा लेता है'], volume: 'वॉल्यूम' },
+  ur: { says: ['bitcoin', 'ہر روز', 'بدل سکتے ہیں یا ختم ہو سکتے ہیں', 'کوئی کٹوتی نہیں'], volume: 'حجم' },
+  ar: { says: ['بالبيتكوين', 'كل يوم', 'تتغير أو تنتهي', 'لا تأخذ أي حصة'], volume: 'حجم' },
+  he: { says: ['בביטקוין', 'מדי יום', 'להשתנות או להסתיים', 'אינה גובה עמלה'], volume: 'נפח' },
+}
+
+test('every locale has its rewards notice phrases', () => {
+  expect(Object.keys(REWARDS_NOTICE).sort()).toEqual([...codes].sort())
+})
+
+test.each(codes)('%s draws no rate for the USDB rewards', code => {
+  const strings = load(code)
+  const rewards = Object.entries(strings).filter(([key]) => key.startsWith('stable.rewards'))
+  expect(rewards.length).toBeGreaterThanOrEqual(5)
+  for (const [, value] of rewards) {
+    // The Latin percent sign, the Arabic one, and the placeholder a rate would arrive through.
+    expect(value).not.toMatch(/[%٪]|percent/)
+    // The 10 USDB minimum is the one figure a rewards string carries.
+    expect(value.replace(/10 \{\{ticker\}\}/g, '')).not.toMatch(/\p{Nd}/u)
+  }
+  expect(Object.values(strings).filter(value => value.includes('{{percent}}'))).toEqual([])
+})
+
+test.each(codes)('%s credits the USDB rewards to Flashnet, says they can change or end, and dates no payout', code => {
+  const line = load(code)['stable.rewardsIssuer']
+  const { says, volume } = REWARDS_NOTICE[code]
+  // Flashnet pays, and the rules and the amount are Flashnet's.
+  expect(line.split('Flashnet').length - 1).toBeGreaterThanOrEqual(2)
+  expect(line).toContain('Voltz')
+  expect(line).toContain('10 {{ticker}}')
+  for (const phrase of says) {
+    expect(line).toContain(phrase)
+  }
+  expect(line).not.toMatch(/UTC|\p{Nd}{1,2}:\p{Nd}{2}/u)
+  expect(line.toLowerCase()).not.toContain(volume.toLowerCase())
+})
