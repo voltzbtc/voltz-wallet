@@ -268,6 +268,15 @@ The UI presents USDB as **protection against volatility**, never as an investmen
 "invest", "deposit into", "profit". The rewards appear as a fact about the token, with explicit
 credit to Flashnet.
 
+The app draws **no rate**, in no language. Flashnet sets the rate and the rules and can change or end
+them, so a figure on screen would read as one the app stands behind. The rewards card on
+`StableBalanceScreen` shows today's estimate and the balance counted, and the line under it says that
+Flashnet pays the rewards in bitcoin, every day, to the wallet, from 10 USDB, that the rules and the
+amount are Flashnet's and can change or end, and that Voltz takes no part and no cut. It names no hour
+and nothing that moves the rate, since both are Flashnet's to change. `__tests__/locales.test.ts`
+holds every locale to that line and to no percentage, and `__tests__/stableBalanceScreen.test.tsx`
+holds the screen to no rate whatever the API reports.
+
 ## Cross-chain (sending USDC or USDT to Solana, Tron, EVM)
 
 `Config.crossChainConfig` is **opt-in**, since the SDK default is `None`, off, because the providers
