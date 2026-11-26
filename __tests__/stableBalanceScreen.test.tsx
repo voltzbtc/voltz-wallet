@@ -18,6 +18,7 @@ import { getActiveWalletId } from '../src/wallet/walletRegistry'
 import { font } from '../src/theme'
 import { FigureRow } from '../src/components/FigureRow'
 import { Txt } from '../src/components/Txt'
+import { Skeleton } from '../src/components/Skeleton'
 import { figuresHeldOut, figuresIn } from './support/figureFit'
 
 jest.mock('../src/wallet/spark', () => ({
@@ -65,7 +66,11 @@ async function render(): Promise<ReactTestRenderer.ReactTestRenderer> {
 }
 
 function texts(tree: ReactTestRenderer.ReactTestRenderer): string[] {
-  return tree.root.findAllByType(Text).flatMap(node => {
+  return textsIn(tree.root)
+}
+
+function textsIn(root: ReactTestRenderer.ReactTestInstance): string[] {
+  return root.findAllByType(Text).flatMap(node => {
     const children = node.props.children
     return (Array.isArray(children) ? children : [children]).filter(
       (child): child is string => typeof child === 'string',
@@ -272,7 +277,21 @@ test('no rewards to report shows the minimum-holding note, not a row of zeros', 
   expect(shown).not.toContain("Today's estimate")
 })
 
-test('reported rewards show the rate and the estimate for today', async () => {
+// The section from its title to the line that credits Flashnet.
+function rewardsSection(tree: ReactTestRenderer.ReactTestRenderer): ReactTestRenderer.ReactTestInstance {
+  const title = tree.root
+    .findAllByType(Text)
+    .find(n => n.props.children === i18n.t('stable.rewardsTitle', { ticker: 'USDB' }))!
+  const issuer = i18n.t('stable.rewardsIssuer', { ticker: 'USDB' })
+  for (let at = title.parent; at; at = at.parent) {
+    if (textsIn(at).includes(issuer)) {
+      return at
+    }
+  }
+  throw new Error('rewards section not found')
+}
+
+test('reported rewards show the estimate for today and the balance counted', async () => {
   jest.mocked(fetchUsdbRewards).mockResolvedValue({
     balance: '1250.5',
     percent: 4.5,
@@ -281,21 +300,41 @@ test('reported rewards show the rate and the estimate for today', async () => {
   const tree = await render()
 
   const shown = texts(tree).join(' ')
-  expect(shown).toContain('4.5% a year')
   expect(shown).toContain("Today's estimate")
-
-  // The rate is the headline of the card and it is drawn large. Unpinned, the role could be swapped
-  // for a caption and the number a person comes here to read would arrive at the size of a
-  // footnote.
-  const rate = tree.root.findAllByType(Text).find(n => String(n.props.children).includes('4.5%'))!
-  const style = Object.assign(
-    {},
-    ...[rate.props.style].flat(Infinity).filter(x => x && typeof x === 'object'),
-  )
-  expect(style.fontSize).toBe(font.size.xxl)
   expect(shown).toContain('137')
+  expect(shown).toContain('Balance counted')
   // The en test locale groups thousands, so the raw "1250.5" from the API renders grouped.
   expect(shown).toContain('1,250.5')
+})
+
+// Flashnet sets the rate and its rules and can change or end them, so a rate drawn here would read as
+// a figure the app stands behind.
+test('the rewards show no rate, whatever the API reports', async () => {
+  jest.mocked(fetchUsdbRewards).mockResolvedValue({
+    balance: '1250.5',
+    percent: 4.75,
+    estimatedSatsToday: 137,
+  })
+  const tree = await render()
+
+  const section = textsIn(rewardsSection(tree))
+  expect(section.join(' ')).toContain("Today's estimate")
+  expect(section.filter(line => line.includes('%'))).toEqual([])
+  expect(texts(tree).filter(line => /4[.,]75/.test(line))).toEqual([])
+})
+
+test('while the rewards are read, the card holds the two rows it lands in and no rate', async () => {
+  let answer: (value: null) => void = () => undefined
+  jest.mocked(fetchUsdbRewards).mockReturnValue(new Promise(resolve => (answer = resolve)))
+  const tree = await render()
+
+  const placeholders = tree.root.findAllByType(Skeleton)
+  expect(placeholders).toHaveLength(4)
+  expect(placeholders.filter(p => p.props.height === font.leading.xxl)).toEqual([])
+
+  await ReactTestRenderer.act(async () => {
+    answer(null)
+  })
 })
 
 test('the rewards are credited to their issuer, never presented as something Voltz pays', async () => {
@@ -309,6 +348,7 @@ test('the rewards are credited to their issuer, never presented as something Vol
   const shown = texts(tree).join(' ')
   expect(shown).toContain('Flashnet')
   expect(shown).toContain('no cut')
+  expect(shown).toContain("The rules and the amount are Flashnet's and can change or end.")
   // A raw "{{ticker}}" reaching the screen means the call site forgot to interpolate.
   expect(shown).not.toContain('{{')
   expect(shown).toContain('10 USDB')
@@ -413,7 +453,7 @@ test('a rewards read that failed offers Try again, which reads again and shows t
   await flush()
 
   expect(fetchUsdbRewards).toHaveBeenCalledTimes(1)
-  expect(texts(tree).join(' ')).toContain('4.5% a year')
+  expect(texts(tree).join(' ')).toContain("Today's estimate")
   expect(texts(tree)).not.toContain(i18n.t('common.retry'))
 })
 

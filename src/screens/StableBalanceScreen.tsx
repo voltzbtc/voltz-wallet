@@ -189,9 +189,6 @@ export function StableBalanceScreen(): React.JSX.Element {
         <SectionLabel style={styles.label}>{t('stable.rewardsTitle', { ticker: USDB.ticker })}</SectionLabel>
         {!rewardsLoaded ? (
           <Card padding="inset" style={styles.card}>
-            <View style={[styles.rate, styles.divider]}>
-              <Skeleton width={FIGURE_WIDTH} height={font.leading.xxl} />
-            </View>
             <View style={[styles.skeletonRow, styles.divider]}>
               <Skeleton width={FIGURE_WIDTH} height={font.leading.base} />
               <Skeleton width={SWITCH_WIDTH} height={font.leading.base} />
@@ -211,12 +208,9 @@ export function StableBalanceScreen(): React.JSX.Element {
             </Touch>
           </View>
         ) : rewards !== null ? (
+          // Flashnet sets the rate and its rules and can change or end them, so the card draws no rate
+          // and keeps to what this wallet holds, and the line below credits the rest to Flashnet.
           <Card padding="inset" style={styles.card}>
-            <View style={[styles.rate, styles.divider]}>
-              <Txt role="titleStrong">
-                {t('stable.rewardsRate', { percent: fmtNum(rewards.percent) })}
-              </Txt>
-            </View>
             <FigureRow label={t('stable.rewardsToday')} style={[styles.line, styles.divider]}>
               <Figure role="bodyStrong">
                 {t('stable.sats', { amount: satsAmount(rewards.estimatedSatsToday) })}
@@ -302,9 +296,6 @@ const styles = StyleSheet.create({
   },
   // Same height as the MenuRow it stands in for, so the layout doesn't jump when the SDK answers.
   toggleSkeleton: {
-    paddingVertical: space.lg,
-  },
-  rate: {
     paddingVertical: space.lg,
   },
   skeletonRow: {
