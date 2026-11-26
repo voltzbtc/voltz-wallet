@@ -306,8 +306,9 @@ spend. They are the following, grouped by what they hold.
   `deletion-read.json` and `deletion-check.json` (the marks of wallets whose data was deleted at
   Voltz, and when their status was read).
 - **Preferences.** `settings.json` (currency, language, explorer, the dollar wallet and similar
-  choices), `token-prefs.json` (the tokens each wallet added or hid), `biometric-offer.json` and
-  `price-cache.json` (the bitcoin price series).
+  choices), `token-prefs.json` (the tokens each wallet added or hid), `biometric-offer.json`,
+  `store-review.json` (the wallet ids the store's review card was asked for) and `price-cache.json`
+  (the bitcoin price series).
 
 A file written through `src/wallet/durableFile.ts` can also leave a `.tmp` copy beside it, and one
 that could not be read is set aside as `.unreadable`; both cross with the rest.

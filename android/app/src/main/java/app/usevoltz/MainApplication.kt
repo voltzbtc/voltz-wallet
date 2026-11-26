@@ -7,6 +7,7 @@ import app.usevoltz.age.NativeVoltzAgePackage
 import app.usevoltz.biometric.NativeVoltzBiometricPackage
 import app.usevoltz.durable.NativeVoltzDurablePackage
 import app.usevoltz.privacy.NativeVoltzPrivacyPackage
+import app.usevoltz.review.NativeVoltzReviewPackage
 import app.usevoltz.qrimage.NativeVoltzQrImagePackage
 import app.usevoltz.restart.VoltzRestartPackage
 import app.usevoltz.store.NativeVoltzStorePackage
@@ -31,6 +32,7 @@ class MainApplication : Application(), ReactApplication {
           add(NativeVoltzDurablePackage())
           add(NativeVoltzBiometricPackage())
           add(NativeVoltzAgePackage())
+          add(NativeVoltzReviewPackage())
         },
     )
   }

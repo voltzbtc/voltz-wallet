@@ -943,6 +943,12 @@ function busy(): boolean {
   return sendsInFlight > 0 || addressWorks > 0
 }
 
+// Whether a send, a prepare or the stable balance switch is running now, for a prompt that must never
+// come up over one.
+export function sparkSpendInFlight(): boolean {
+  return sendsInFlight > 0
+}
+
 // What a reconnect nobody asked for rejects with when a send, a prepare or an address change is in
 // flight. Nothing was dropped, and the reconnect is left for whoever asks next.
 export class SparkReconnectBusy extends Error {

@@ -25,7 +25,24 @@ export function useCloseOnLock(open: boolean, close: () => void): boolean {
       latest.current.close()
     }
   }, [locked])
+  useEffect(() => {
+    if (!open) {
+      return
+    }
+    modalsOpen += 1
+    return () => {
+      modalsOpen -= 1
+    }
+  }, [open])
   return locked
+}
+
+// Every Modal registers here through useCloseOnLock while it is open, so this counts them all, sheets
+// included, for a prompt that must never come up over one.
+let modalsOpen = 0
+
+export function openModalCount(): number {
+  return modalsOpen
 }
 
 // Keeps its children mounted whether locked or not, so a review, an amount or a send in flight is where

@@ -67,6 +67,12 @@ beforeEach(() => {
   jest.requireMock('./specs/NativeVoltzAge').ageStore.reset()
 })
 
+// The stores' review prompt, counted rather than shown.
+jest.mock('./specs/NativeVoltzReview')
+beforeEach(() => {
+  jest.requireMock('./specs/NativeVoltzReview').reviewStore.reset()
+})
+
 // Home reads the update notice over the network once it is drawn, and every suite that renders it
 // stays off the network with no notice to show. __tests__/updateNotice.test.ts uses the real reader.
 jest.mock('./src/wallet/updateNotice', () => ({

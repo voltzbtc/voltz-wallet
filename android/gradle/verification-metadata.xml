@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Checksums for the three modules Play Billing brings in and for Play's age-signals, and only for
-  them. Every other component is trusted by the three rules below, so a bump elsewhere does not break
-  the build. A missing or wrong checksum for billing, play-services-location,
-  play-services-places-placereport or age-signals fails the build.
+  Checksums for the three modules Play Billing brings in and for Play's age-signals and review, and
+  only for them. Every other component is trusted by the three rules below, so a bump elsewhere does
+  not break the build. A missing or wrong checksum for billing, play-services-location,
+  play-services-places-placereport, age-signals or review fails the build.
   Each sha256 was computed from dl.google.com and compared with the .sha256 Google publishes beside
   the file; placereport publishes only a .sha1, which was compared instead. See docs/supply-chain.md.
 -->
@@ -16,7 +16,7 @@
     <trusted-artifacts>
       <trust group="^(?!com[.]android[.]billingclient$|com[.]google[.]android[.]gms$|com[.]google[.]android[.]play$).*$" regex="true"/>
       <trust group="^com[.]google[.]android[.]gms$" name="^(?!play-services-location$|play-services-places-placereport$).*$" regex="true"/>
-      <trust group="^com[.]google[.]android[.]play$" name="^(?!age-signals$).*$" regex="true"/>
+      <trust group="^com[.]google[.]android[.]play$" name="^(?!age-signals$|review$).*$" regex="true"/>
     </trusted-artifacts>
   </configuration>
   <components>
@@ -35,6 +35,10 @@
     <component group="com.google.android.play" name="age-signals" version="0.0.6">
       <artifact name="age-signals-0.0.6.aar"><sha256 value="d4cd5e5db6b53f3c51b784bd9ae648b1a2b4eb51b5d9b5dee276809bf0a8e36d" origin="Google Maven, matches the published .sha256, 2026-11-20"/></artifact>
       <artifact name="age-signals-0.0.6.pom"><sha256 value="b444d3c4594ed34262ce9779dea023d5cfdbbd6e834414cf3e1b1cf1b23c90a0" origin="Google Maven, matches the published .sha256, 2026-11-20"/></artifact>
+    </component>
+    <component group="com.google.android.play" name="review" version="2.0.2">
+      <artifact name="review-2.0.2.aar"><sha256 value="1602026678231dba0f7482d1244e45ff83d9ff22fc8b6d6be8961228ac7a32dd" origin="Google Maven, matches the published .sha256, 2026-11-26"/></artifact>
+      <artifact name="review-2.0.2.pom"><sha256 value="df4f2490cddb651ffbe784c8c5b979ec69996bc687ca7cd678c7d5f65b2897e8" origin="Google Maven, matches the published .sha256, 2026-11-26"/></artifact>
     </component>
   </components>
 </verification-metadata>

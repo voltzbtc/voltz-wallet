@@ -115,7 +115,8 @@
         "NativeVoltzQrImage": "RCTNativeVoltzQrImage",
         "NativeVoltzPrivacy": "RCTNativeVoltzPrivacy",
         "NativeVoltzDurable": "RCTNativeVoltzDurable",
-        "NativeVoltzAge": "RCTNativeVoltzAge"
+        "NativeVoltzAge": "RCTNativeVoltzAge",
+        "NativeVoltzReview": "RCTNativeVoltzReview"
       }
     }
   }

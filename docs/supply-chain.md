@@ -76,7 +76,7 @@ The npm lockfile covers nothing CocoaPods or Gradle downloads.
 |----------|--------------------|
 | Spark (`RnBreezSdkSpark.xcframework`, `jniLibs`) | SHA-256 in the package's own `postinstall.sh`, with `exit 1` on a mismatch |
 | The Gradle distribution | `distributionSha256Sum` in `gradle-wrapper.properties` |
-| Play Billing and the two modules it brings (`billing`, `play-services-location`, `play-services-places-placereport`) | SHA-256 of each POM and AAR in `android/gradle/verification-metadata.xml` |
+| Play Billing and the two modules it brings (`billing`, `play-services-location`, `play-services-places-placereport`), Play's `age-signals` and `review` | SHA-256 of each POM and AAR in `android/gradle/verification-metadata.xml` |
 | Every other Maven dependency | **nothing.** The same file trusts every other component |
 
 `play-services-mlkit-barcode-scanning` reaches the APK through VisionCamera. The app also names it
@@ -93,11 +93,11 @@ A repository in `allprojects.repositories` is consulted for **every** coordinate
 a host that only needs to serve one artifact can answer for any group, ahead of mavenCentral. If a
 Breez Maven artifact is ever needed, scope it with a `content { includeGroup ... }` filter.
 
-`android/gradle/verification-metadata.xml` pins only the three modules above, the ones the store
-bridge brought in, and trusts the rest through two regex rules: every group but
-`com.android.billingclient` and `com.google.android.gms`, and every module of the second but
-`play-services-location` and `play-services-places-placereport`. A bump of any of the three fails
-the build until its checksums are in the file. Read each new value from `dl.google.com`, compare it
+`android/gradle/verification-metadata.xml` pins only the five modules above and trusts the rest
+through three regex rules: every group but `com.android.billingclient`, `com.google.android.gms` and
+`com.google.android.play`; every module of the second but `play-services-location` and
+`play-services-places-placereport`; and every module of the third but `age-signals` and `review`. A
+bump of any of the five fails the build until its checksums are in the file. Read each new value from `dl.google.com`, compare it
 with the `.sha256` Google publishes beside the file (placereport publishes only a `.sha1`, so compare
 that), and before trusting it, confirm that a wrong digit fails `./gradlew :app:checkDebugAarMetadata`.
 

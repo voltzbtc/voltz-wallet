@@ -93,6 +93,7 @@ src/
                         until the provider confirms, and the pass each connect runs
     deviceForget.ts     the one sender of the forgets the gateway is still owed
     ageSignal.ts        the stores' age signal, asked once per launch, kept in memory as a verdict
+    storeReview.ts      the store's review card, asked once per wallet after an announced receive
   hooks/  navigation/  components/  screens/
   assets/               bundled flags, asset and network marks, logos
 __tests__/              the suite
@@ -446,6 +447,7 @@ Checks to run before a pull request are in [CONTRIBUTING.md](CONTRIBUTING.md).
 - [docs/emergency-exit.md](docs/emergency-exit.md), moving funds on-chain without the operators
 - [docs/app-lock.md](docs/app-lock.md), the PIN asked again after time away, and the native cover before it
 - [docs/age-signal.md](docs/age-signal.md), the stores' age signal and the two things a minor's verdict stops
+- [docs/store-review.md](docs/store-review.md), the store's review card and the quiet moment it waits for
 - [docs/breez-sdk-binding.md](docs/breez-sdk-binding.md), [docs/i18n.md](docs/i18n.md),
   [docs/testing.md](docs/testing.md)
 - [docs/design-system.md](docs/design-system.md), [docs/supply-chain.md](docs/supply-chain.md),

@@ -21,6 +21,8 @@ import { ReceivedOverlay } from './ReceivedOverlay'
 import { IncomingBanner } from './IncomingBanner'
 
 type Props = {
+  // Called when a completed receive is announced, on the connection it arrived on.
+  onAnnounced?: () => void
   onDismiss?: () => void
 }
 
@@ -35,7 +37,7 @@ type Rates = {
 // the SDK reports every failed receive, so without a limit the pill could stay up forever.
 export const INCOMING_OUTCOME_LIMIT_MS = 120_000
 
-export function ReceivedOverlayHost({ onDismiss }: Props): React.JSX.Element {
+export function ReceivedOverlayHost({ onAnnounced, onDismiss }: Props): React.JSX.Element {
   const { t, i18n } = useTranslation()
   const [incoming, setIncoming] = useState<{
     id: string
@@ -66,6 +68,9 @@ export function ReceivedOverlayHost({ onDismiss }: Props): React.JSX.Element {
   language.current = i18n.language
   const dollarMode = useRef(false)
   dollarMode.current = useDollarMode()
+  // Read by the receive listener, so a new callback never resubscribes it.
+  const announcedHook = useRef(onAnnounced)
+  announcedHook.current = onAnnounced
 
   const freshRates = useCallback((): Rates | null => {
     const held = rates.current
@@ -188,6 +193,7 @@ export function ReceivedOverlayHost({ onDismiss }: Props): React.JSX.Element {
     }
     const { id } = update
     announced.current = id
+    announcedHook.current?.()
     // A token's raw amount is its base units, which the sats rate would price as sats.
     const fiatOf = (at: Rates | null): string | undefined =>
       at?.fiat && !update.asset ? formatFiat(satsToFiat(update.sat, at.fiat.value), at.fiat.currency) : undefined

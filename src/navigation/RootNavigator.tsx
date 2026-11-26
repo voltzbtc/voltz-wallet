@@ -19,6 +19,7 @@ import {
 } from '../wallet/pushRoute'
 import { ForegroundNotice } from '../components/ForegroundNotice'
 import { useSettledSendNotice } from '../hooks/useSettledSendNotice'
+import { useStoreReview } from '../hooks/useStoreReview'
 import { HeaderTitle } from '../components/HeaderTitle'
 import { useUnderLock } from '../components/UnderLock'
 import { ReceivedOverlayHost } from '../components/ReceivedOverlayHost'
@@ -177,6 +178,11 @@ export function RootNavigator(): React.JSX.Element {
     if (navRef.isReady() && navRef.getCurrentRoute()?.name === 'Receive') {
       navRef.dispatch(backToHomeTab())
     }
+  }
+  const storeReview = useStoreReview(navRef)
+  const receivedClosed = () => {
+    leaveReceiveForHome()
+    storeReview.closed()
   }
 
   // This lives only while the navigator is mounted, so App.tsx replays earlier URLs into it.
@@ -459,7 +465,7 @@ export function RootNavigator(): React.JSX.Element {
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
-    <ReceivedOverlayHost onDismiss={leaveReceiveForHome} />
+    <ReceivedOverlayHost onAnnounced={storeReview.announced} onDismiss={receivedClosed} />
     {notice && (
       <ForegroundNotice
         title={notice.title}

@@ -42,6 +42,7 @@ import { emergencyExitLive } from './emergencyExit'
 import { forgetTokenPrefs } from './tokenPrefs'
 import { forgetExitPlan, isLivePlan, loadExitPlan, WalletHasLiveExit } from './exitPlan'
 import { forgetPendingSends } from './pendingSends'
+import { forgetStoreReview } from './storeReview'
 import { retirePaymentWebhook } from './paymentWebhook'
 import {
   forgetPasskeyWallet,
@@ -521,6 +522,9 @@ export async function removeWallet(id: string, fingerprint: string): Promise<voi
   })
   await forgetPendingSends(id).catch((err: unknown) => {
     console.warn(`pending sends not cleared on removal: ${(err as Error)?.message ?? String(err)}`)
+  })
+  await forgetStoreReview(id).catch((err: unknown) => {
+    console.warn(`review ask not cleared on removal: ${(err as Error)?.message ?? String(err)}`)
   })
   await forgetDomainAsk(id)
   await forgetLnAddress(id)
