@@ -75,6 +75,7 @@ src/
     paymentNotice.ts    what an in-app payment notice says: the record's rail, the asset, the amount
     conversionNotes.ts      what the SDK quoted for a Convert, read only where it gives nothing else
     lnaddress.ts        lightning address rules (LUD-16)
+    addressCard.ts      the shared address card's code and PNG, and the Android image share's one reader
     price.ts            bitcoin price series for the asset screen
     errors.ts           raw SDK errors mapped to stable codes that screens translate
     store.ts storePurchase.ts   the store bridge's one reader, and a store purchase's talk with the gateway
@@ -442,6 +443,7 @@ Checks to run before a pull request are in [CONTRIBUTING.md](CONTRIBUTING.md).
 - [docs/push-notifications.md](docs/push-notifications.md), the notices sent while the app is closed,
   and the provider's payment webhook
 - [docs/nfc.md](docs/nfc.md), reading a destination from an NFC tag on Send
+- [docs/address-card.md](docs/address-card.md), sharing the lightning address as an image card and as text
 - [docs/store-bridge.md](docs/store-bridge.md), the App Store and Google Play bridge and its tests
 - [docs/data-deletion.md](docs/data-deletion.md), deleting a wallet's data at Voltz and the mark that holds it
 - [docs/emergency-exit.md](docs/emergency-exit.md), moving funds on-chain without the operators

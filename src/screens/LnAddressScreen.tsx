@@ -9,10 +9,13 @@ import {
   sparkClaimLnAddressTransfer,
   sparkDeleteLnAddress,
   sparkEnsureLnAddress,
+  sparkConnectedWalletId,
   sparkGetIdentityPubkey,
   sparkGetLnAddress,
   type SparkLnAddress,
 } from '../wallet/spark'
+import { exitHoldOnSend, type SendHold } from '../wallet/exitHold'
+import { AddressShareSheet, type CardAddress } from '../components/AddressShareSheet'
 import { identitySigner } from '../wallet/identitySigner'
 import {
   activeDeletionView,
@@ -76,6 +79,12 @@ export function LnAddressScreen(): React.JSX.Element {
   const [failure, setFailure] = useState<string | null>(null)
   // The wallet's exit holds its receives, so no address is handed out and the screen says why.
   const [exitHold, setExitHold] = useState<'exit' | 'unread' | null>(null)
+  // Whether an exit holds the wallet, read on each focus as Receive reads it: null while the read is in
+  // flight, and Share is offered only on 'none'.
+  const [shareHold, setShareHold] = useState<SendHold | null>(null)
+  const newestHold = useRef<Promise<SendHold> | null>(null)
+  // The address the share sheet is open on, as drawn when Share was pressed.
+  const [card, setCard] = useState<CardAddress | null>(null)
   // Moves on every focus and after a move to another wallet, and the name purchases are read again.
   const [purchasesRead, setPurchasesRead] = useState(0)
   const prefs = useMemo(() => deviceDateTimePrefs(), [])
@@ -154,6 +163,39 @@ export function LnAddressScreen(): React.JSX.Element {
     })
     return () => sub.remove()
   }, [readState])
+
+  // An exit can start while this screen sits under its own, so the hold is read on each focus and again
+  // at each press that sends the address out. A newer read wins over an older one still in flight.
+  const readHold = useCallback((): Promise<SendHold> => {
+    const read = exitHoldOnSend(sparkConnectedWalletId())
+    newestHold.current = read
+    read.then(
+      next => {
+        if (newestHold.current !== read) {
+          return
+        }
+        setShareHold(next)
+        if (next !== 'none') {
+          setExitHold(next)
+          setCard(null)
+        }
+      },
+      () => undefined,
+    )
+    return read
+  }, [])
+
+  const heldAtPress = useCallback(
+    async (): Promise<boolean> => (await readHold()) !== 'none',
+    [readHold],
+  )
+
+  useFocusEffect(
+    useCallback(() => {
+      setShareHold(null)
+      readHold().catch(() => undefined)
+    }, [readHold]),
+  )
 
   useFocusEffect(
     useCallback(() => {
@@ -332,6 +374,48 @@ export function LnAddressScreen(): React.JSX.Element {
   // mark this device lost offers nothing until a status read says what it was.
   const holding = held !== null && held.kind !== 'none' && held.kind !== 'notArrived'
   const canRecreate = held?.kind === 'removed' || held?.kind === 'done'
+  // The address card is drawn only for a current address the wallet may hand out, and Share only once
+  // this focus's hold read said nothing holds it.
+  const showCard = loaded && !holding && lnAddr !== null && !frozen && exitHold === null
+  const shareable = showCard && shareHold === 'none'
+
+  // What the screen draws as the address, for a hold read that answers after the address moved on.
+  const shownAddr = useRef<SparkLnAddress | null>(null)
+  useEffect(() => {
+    shownAddr.current = showCard ? lnAddr : null
+  })
+
+  // The sheet shows only the address the screen shows, so it closes once that address changes, goes,
+  // or may no longer be handed out.
+  useEffect(() => {
+    if (
+      card !== null &&
+      !(shareable && lnAddr?.address === card.address && lnAddr?.lnurl === card.lnurl)
+    ) {
+      setCard(null)
+    }
+  }, [card, lnAddr, shareable])
+
+  function openShare(): void {
+    const shown = lnAddr
+    if (!shown || !shareable) {
+      return
+    }
+    heldAtPress().then(
+      isHeld => {
+        const still = shownAddr.current
+        if (
+          !isHeld &&
+          still !== null &&
+          still.address === shown.address &&
+          still.lnurl === shown.lnurl
+        ) {
+          setCard({ address: shown.address, lnurl: shown.lnurl })
+        }
+      },
+      () => undefined,
+    )
+  }
 
   return (
     <Screen scroll layout="padded" contentStyle={styles.container}>
@@ -413,25 +497,41 @@ export function LnAddressScreen(): React.JSX.Element {
         {/* Withheld while the domain is frozen. The code and the address are the same dead end
             for the payer, and a shop holding either one out to a customer produces an error in
             the customer's wallet, which is worse than the notice above and no card at all. */}
-        {loaded && !holding && lnAddr && !frozen && (
-          <Card centered style={receiveStyles.card}>
-            <View style={styles.qrWrap}>
-              <QRCode value={lnAddr.lnurl} size={QR_SIZE} />
-            </View>
-            <Touch onPress={copy} feedback="link" label={t('receive.copy')} style={receiveStyles.addressBlock}>
-              <ChunkedAddress value={lnAddr.address} chunked={false} />
-              <Animated.View style={[receiveStyles.copyHint, { opacity: hintOpacity }]}>
-                <TabIcon
-                  name={copied ? 'check' : 'copy'}
-                  color={copied ? accent : colors.textSecondary}
-                  size={14}
-                />
-                <Txt role="micro" tone={copied ? 'accent' : 'muted'}>
-                  {copied ? t('receive.copied') : t('receive.tapToCopy')}
-                </Txt>
-              </Animated.View>
-            </Touch>
-          </Card>
+        {showCard && lnAddr && (
+          <View style={styles.codeGroup}>
+            <Card centered style={receiveStyles.card}>
+              <View style={styles.qrWrap}>
+                <QRCode value={lnAddr.lnurl} size={QR_SIZE} />
+              </View>
+              <Touch
+                onPress={copy}
+                feedback="link"
+                label={t('receive.copy')}
+                style={receiveStyles.addressBlock}>
+                <ChunkedAddress value={lnAddr.address} chunked={false} />
+                <Animated.View style={[receiveStyles.copyHint, { opacity: hintOpacity }]}>
+                  <TabIcon
+                    name={copied ? 'check' : 'copy'}
+                    color={copied ? accent : colors.textSecondary}
+                    size={14}
+                  />
+                  <Txt role="micro" tone={copied ? 'accent' : 'muted'}>
+                    {copied ? t('receive.copied') : t('receive.tapToCopy')}
+                  </Txt>
+                </Animated.View>
+              </Touch>
+            </Card>
+            {/* Off until this focus's hold read answers, so it holds its place and never offers a card
+              while an exit may hold the wallet. */}
+            <GradientButton
+              label={t('receive.share')}
+              variant="secondary"
+              singleLine
+              disabled={!shareable}
+              icon={<TabIcon name="share" color={colors.text} size={18} />}
+              onPress={openShare}
+            />
+          </View>
         )}
       </View>
 
@@ -480,6 +580,8 @@ export function LnAddressScreen(): React.JSX.Element {
 
       <ConfirmSheet request={asking} onClose={() => setAsking(null)} />
 
+      <AddressShareSheet card={card} onClose={() => setCard(null)} heldAtPress={heldAtPress} />
+
       <WalletPickerSheet
         visible={pickerOpen}
         title={t('receive.lnTransferPick')}
@@ -525,6 +627,10 @@ const styles = StyleSheet.create({
   },
   top: {
     gap: rhythm.hintToContent,
+  },
+  // The code and its button are one group, 8 apart, as on Receive.
+  codeGroup: {
+    gap: space.sm,
   },
   // A row's own 16 of padding is part of the 32 above it.
   rows: {
