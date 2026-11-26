@@ -279,6 +279,7 @@
     "language": "ภาษา",
     "languageSearch": "ค้นหาภาษา",
     "languageNoResult": "ไม่พบภาษา",
+    "languageReviewers": "ผู้ตรวจทานคำแปล",
     "setPin": "ตั้งค่า PIN",
     "changePin": "เปลี่ยน PIN",
     "pin": "PIN",
