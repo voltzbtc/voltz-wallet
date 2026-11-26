@@ -16,7 +16,12 @@ import type { ReceiveUpdate } from '../src/wallet/spark'
 // with the leave from Receive landing on Home.
 
 const { reviewStore } = jest.requireMock('../specs/NativeVoltzReview') as {
-  reviewStore: { calls: number; fails: (code: string) => void }
+  reviewStore: {
+    prepares: number
+    calls: number
+    fails: (code: string) => void
+    whilePreparing: (run: () => void | Promise<void>) => void
+  }
 }
 
 // The real overlay animates through worklets that do not run under Jest (jest.setup.js draws it as
@@ -234,6 +239,31 @@ test('a receive that lands during a send asks nothing, and the next one on Home 
   await redraw({})
   expect(reviewStore.calls).toBe(0)
 
+  await receive()
+  await closeOverlay()
+  expect(reviewStore.calls).toBe(1)
+})
+
+test.each([
+  ['Send opens', () => (mockNav.route = 'Send')],
+  ['Scan opens', () => (mockNav.route = 'Scan')],
+  ['a send starts', () => (mockSpark.spending = true)],
+  ['the drawer opens', () => (mockNav.drawerOpen = true)],
+])('launches nothing when %s during the store\'s round trip, and the next receive asks', async (_, change) => {
+  await mount()
+  reviewStore.whilePreparing(() => {
+    change()
+  })
+
+  await receive()
+  await closeOverlay()
+  expect(reviewStore.prepares).toBe(1)
+  expect(reviewStore.calls).toBe(0)
+
+  reviewStore.whilePreparing(() => undefined)
+  mockNav.route = 'Home'
+  mockNav.drawerOpen = false
+  mockSpark.spending = false
   await receive()
   await closeOverlay()
   expect(reviewStore.calls).toBe(1)

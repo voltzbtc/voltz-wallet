@@ -11,7 +11,14 @@ import {
 import { notePendingSend } from '../src/wallet/pendingSends'
 
 const { reviewStore } = jest.requireMock('../specs/NativeVoltzReview') as {
-  reviewStore: { calls: number; fails: (code: string) => void }
+  reviewStore: {
+    prepares: number
+    calls: number
+    fails: (code: string) => void
+    prepareFails: (code: string) => void
+    prepareAnswers: (ready: boolean) => void
+    whilePreparing: (run: () => void | Promise<void>) => void
+  }
 }
 
 const FILE = `${RNFS.DocumentDirectoryPath}/store-review.json`
@@ -58,19 +65,25 @@ describe('quietMoment', () => {
 })
 
 describe('considerReview', () => {
-  test('asks once after an announced receive of the wallet in front, and records it first', async () => {
-    let recordedAtAsk: unknown = null
-    const native = jest.requireMock('../specs/NativeVoltzReview').default as { request: () => Promise<void> }
-    const request = native.request
-    jest.spyOn(native, 'request').mockImplementation(async () => {
-      recordedAtAsk = JSON.parse(await RNFS.readFile(FILE, 'utf8'))
-      return request()
+  test('prepares, then records, then launches, once, for the wallet in front', async () => {
+    let recordedAtPrepare: boolean | null = null
+    let recordedAtLaunch: unknown = null
+    reviewStore.whilePreparing(async () => {
+      recordedAtPrepare = await RNFS.exists(FILE)
+    })
+    const native = jest.requireMock('../specs/NativeVoltzReview').default as { launch: () => Promise<void> }
+    const launch = native.launch
+    jest.spyOn(native, 'launch').mockImplementation(async () => {
+      recordedAtLaunch = JSON.parse(await RNFS.readFile(FILE, 'utf8'))
+      return launch()
     })
 
     expect(await receiveThenClose('w_a')).toBe('asked')
 
+    expect(reviewStore.prepares).toBe(1)
     expect(reviewStore.calls).toBe(1)
-    expect(recordedAtAsk).toEqual({ asked: ['w_a'] })
+    expect(recordedAtPrepare).toBe(false)
+    expect(recordedAtLaunch).toEqual({ asked: ['w_a'] })
     expect(await wasAsked('w_a')).toBe(true)
   })
 
@@ -116,6 +129,7 @@ describe('considerReview', () => {
     ['another screen in front', { homeInFront: false }],
   ])('asks nothing with %s', async (_, change) => {
     expect(await receiveThenClose('w_a', () => ({ ...QUIET, ...change }))).toBe('notQuiet')
+    expect(reviewStore.prepares).toBe(0)
     expect(reviewStore.calls).toBe(0)
     expect(await RNFS.exists(FILE)).toBe(false)
   })
@@ -128,12 +142,71 @@ describe('considerReview', () => {
     expect(await wasAsked('w_a')).toBe(false)
   })
 
+  test.each([
+    ['a sheet opens', { modalsOpen: 1 }],
+    ['a send starts', { spendInFlight: true }],
+    ['the PIN comes up', { locked: true }],
+    ['another screen comes in front', { homeInFront: false }],
+  ])('launches nothing and records nothing when %s during the store\'s round trip', async (_, change) => {
+    let now = QUIET
+    reviewStore.whilePreparing(() => {
+      now = { ...QUIET, ...change }
+    })
+
+    expect(await receiveThenClose('w_a', () => now)).toBe('notQuiet')
+
+    expect(reviewStore.prepares).toBe(1)
+    expect(reviewStore.calls).toBe(0)
+    expect(await RNFS.exists(FILE)).toBe(false)
+
+    // The next announced receive at a quiet moment is a chance of its own.
+    reviewStore.whilePreparing(() => undefined)
+    now = QUIET
+    expect(await receiveThenClose('w_a', () => now)).toBe('asked')
+    expect(reviewStore.calls).toBe(1)
+  })
+
+  test('launches nothing and records nothing when the wallet in front changes during the round trip', async () => {
+    reviewStore.whilePreparing(() => listWallets(['w_a', 'w_b'], 'w_b'))
+
+    expect(await receiveThenClose('w_a')).toBe('otherWallet')
+
+    expect(reviewStore.prepares).toBe(1)
+    expect(reviewStore.calls).toBe(0)
+    expect(await wasAsked('w_a')).toBe(false)
+  })
+
   test('asks nothing when the moment ends while the record is written, and keeps the record', async () => {
-    const moments = [QUIET, QUIET, { ...QUIET, spendInFlight: true }]
+    const moments = [QUIET, QUIET, QUIET, { ...QUIET, spendInFlight: true }]
     expect(await receiveThenClose('w_a', () => moments.shift() ?? QUIET)).toBe('notQuiet')
 
+    expect(reviewStore.prepares).toBe(1)
     expect(reviewStore.calls).toBe(0)
     expect(await wasAsked('w_a')).toBe(true)
+  })
+
+  test.each([
+    ['rejects', () => reviewStore.prepareFails('play-2')],
+    ['answers not ready', () => reviewStore.prepareAnswers(false)],
+  ])('records nothing and launches nothing when the prepare %s, silently', async (_, fail) => {
+    const said = [
+      jest.spyOn(console, 'log').mockImplementation(() => undefined),
+      jest.spyOn(console, 'warn').mockImplementation(() => undefined),
+      jest.spyOn(console, 'error').mockImplementation(() => undefined),
+    ]
+    fail()
+
+    expect(await receiveThenClose('w_a')).toBe('unprepared')
+
+    expect(reviewStore.prepares).toBe(1)
+    expect(reviewStore.calls).toBe(0)
+    expect(await RNFS.exists(FILE)).toBe(false)
+    said.forEach(spy => expect(spy).not.toHaveBeenCalled())
+
+    // A later announced receive can ask once the store can.
+    reviewStore.prepareAnswers(true)
+    expect(await receiveThenClose('w_a')).toBe('asked')
+    expect(reviewStore.calls).toBe(1)
   })
 
   test('asks nothing for a receive announced on a wallet that is no longer in front', async () => {
@@ -237,14 +310,15 @@ describe('considerReview', () => {
 })
 
 describe('without the native module', () => {
-  test('records the ask and asks nothing, silently', async () => {
+  test('records nothing and asks nothing, silently', async () => {
     jest.replaceProperty(jest.requireMock('../specs/NativeVoltzReview'), 'default', null)
     const said = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
 
-    await expect(receiveThenClose('w_a')).resolves.toBe('asked')
+    await expect(receiveThenClose('w_a')).resolves.toBe('unprepared')
 
+    expect(reviewStore.prepares).toBe(0)
     expect(reviewStore.calls).toBe(0)
-    expect(await wasAsked('w_a')).toBe(true)
+    expect(await wasAsked('w_a')).toBe(false)
     expect(said).not.toHaveBeenCalled()
   })
 })

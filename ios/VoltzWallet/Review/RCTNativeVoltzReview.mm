@@ -20,7 +20,13 @@
   return std::make_shared<facebook::react::NativeVoltzReviewSpecJSI>(params);
 }
 
-- (void)request:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+- (void)prepare:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+{
+  // StoreKit has no round trip before its prompt; the scene is looked up at launch.
+  resolve(@YES);
+}
+
+- (void)launch:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
   [VoltzReviewCore requestWithResolve:^{
         resolve(nil);

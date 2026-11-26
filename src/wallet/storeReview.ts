@@ -126,13 +126,23 @@ async function activeWallet(): Promise<string | null> {
   }
 }
 
-export type ReviewOutcome = 'asked' | 'notArmed' | 'notQuiet' | 'otherWallet' | 'alreadyAsked' | 'unrecorded'
+export type ReviewOutcome =
+  | 'asked'
+  | 'notArmed'
+  | 'notQuiet'
+  | 'otherWallet'
+  | 'alreadyAsked'
+  | 'unprepared'
+  | 'unrecorded'
 
 // Decides the overlay's close: the armed receive is used up whatever the answer. `moment` is read
 // before each wait ends and once more right after the record is written, so a send or a sheet that
-// starts meanwhile still stops the ask. A failure of the native side, or no native side, asks nothing
-// and says nothing. Exactly one ask per wallet: the record goes to disk before the store is asked, and
-// a process killed between the two leaves the wallet never asked.
+// starts meanwhile still stops the ask. Play's round trip (prepare) comes before the record, and the
+// moment and the wallet in front are read again after it, because the card launched from Play's answer
+// would land over whatever the person opened during the trip. A prepare that fails, or no native side,
+// records nothing and launches nothing, so a later announced receive can ask. Exactly one ask per
+// wallet: the record goes to disk before the card is launched, and a process killed between the two
+// leaves the wallet never asked.
 export async function considerReview(moment: () => ReviewMoment): Promise<ReviewOutcome> {
   const walletId = armed
   armed = null
@@ -151,25 +161,43 @@ export async function considerReview(moment: () => ReviewMoment): Promise<Review
   if ((await sendLeftPending(walletId)) || !quietMoment(moment())) {
     return 'notQuiet'
   }
+  const native = NativeVoltzReview
+  if (!native || !(await prepared(native))) {
+    return 'unprepared'
+  }
+  if ((await activeWallet()) !== walletId) {
+    return 'otherWallet'
+  }
+  if (!quietMoment(moment())) {
+    return 'notQuiet'
+  }
   if (!(await markAsked(walletId))) {
     return 'unrecorded'
   }
   if (!quietMoment(moment())) {
     return 'notQuiet'
   }
-  await requestReview()
+  await launch(native)
   return 'asked'
+}
+
+type Native = NonNullable<typeof NativeVoltzReview>
+
+// Play's ReviewInfo, kept natively for the launch; iOS has nothing to prepare. Only a plain true is
+// ready: false or a rejection means the store cannot ask now.
+async function prepared(native: Native): Promise<boolean> {
+  try {
+    return (await native.prepare()) === true
+  } catch {
+    return false
+  }
 }
 
 // The store's card. Play starts an activity of its own over the app, so the trip it makes is timed as
 // one of the app's (relock.ts). Silent on any failure, since there is nothing to tell the person.
-async function requestReview(): Promise<void> {
-  const native = NativeVoltzReview
-  if (!native) {
-    return
-  }
+async function launch(native: Native): Promise<void> {
   try {
-    await asOwnActivity(() => native.request())
+    await asOwnActivity(() => native.launch())
   } catch {
     // The store could not ask; the wallet stays recorded as asked.
   }

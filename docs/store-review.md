@@ -21,7 +21,7 @@ is the store's.
 
 | Piece | What it does |
 |-------|--------------|
-| `specs/NativeVoltzReview.ts` | The codegen spec: `request()` |
+| `specs/NativeVoltzReview.ts` | The codegen spec: `prepare()` and `launch()` |
 | `android/app/src/main/java/app/usevoltz/review/` | Play In-App Review 2.0.2, pinned in `android/gradle/verification-metadata.xml` |
 | `ios/VoltzWallet/Review/` | `AppStore.requestReview(in:)` from iOS 16, `SKStoreReviewController.requestReview(in:)` below it |
 | `src/wallet/storeReview.ts` | The one reader: the asked record, the decision, the call |
@@ -41,13 +41,19 @@ is the store's.
    asked again is not up, the app is active, no send or prepare is running and the wallet has no send
    left pending, and only for the wallet in front. Otherwise the receive is used up, and the next
    announced receive is the next chance. No timer asks later.
-3. `store-review.json` lists the wallets asked. The wallet goes on the list before the store is asked,
-   so a process killed between the two leaves it never asked. A list that cannot be read counts every
-   wallet as asked and is never written over. Removing a wallet drops it from the list.
-4. A failure, or no native module, asks nothing and says nothing, and the wallet stays on the list.
-   Android starts the card as an activity of the app's own (`asOwnActivity`), so its pause is timed
-   against `RELOCK_AFTER_OWN_MS`.
-5. Nothing leaves the device but the store's own prompt.
+3. The store is asked in two steps, so nothing shows before the screen is looked at again. `prepare()`
+   makes Play's round trip (`requestReviewFlow`, kept natively as a ReviewInfo) and shows nothing; iOS
+   has nothing to prepare. After it, the moment and the wallet in front are read again, since a sheet,
+   a send or the PIN can come up during the trip. Only then is the wallet recorded, the moment read once
+   more, and `launch()` shows the card with what was prepared. A prepare that fails, no native module,
+   or a moment that is no longer quiet after the prepare records nothing and launches nothing, so a
+   later announced receive can ask.
+4. `store-review.json` lists the wallets asked. The wallet goes on the list before the card is
+   launched, so a process killed between the two leaves it never asked. A list that cannot be read
+   counts every wallet as asked and is never written over. Removing a wallet drops it from the list.
+5. A launch that fails says nothing, and the wallet stays on the list. Android starts the card as an
+   activity of the app's own (`asOwnActivity`), so its pause is timed against `RELOCK_AFTER_OWN_MS`.
+6. Nothing leaves the device but the store's own prompt.
 
 ## Not measured
 
