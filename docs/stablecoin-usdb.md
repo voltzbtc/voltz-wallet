@@ -241,10 +241,18 @@ legs, which a device cannot be made to produce on demand.
 
 ## USDB rewards
 
-Flashnet pays **3.5% to 6% a year** in sats, daily at 00:00 UTC, **straight to the holder's wallet**.
-Minimum 10 USDB, cap 500,000, calculated by TWAB. The rate comes from the protocol's 24h volume, not
-from the user's balance. Flashnet pays it out of protocol fees, not out of the backing, and Brale's
-1:1 redemption stands even if the rewards stop.
+Flashnet pays **3.5% to 6% a year** in sats, daily at 01:00 UTC, **straight to the holder's wallet**.
+Minimum 10 USDB, cap 500,000, calculated by TWAB. The rate comes from the holder's own trading volume on
+Flashnet over a rolling 24 hours, 3.5% with none and up to 6% from $25,000; the balance sets the amount,
+not the rate (Flashnet's rewards page, read 26/11/2026). Flashnet pays it out of protocol fees, not out
+of the backing, and Brale's 1:1 redemption stands even if the rewards stop.
+
+Measured on 26/11/2026 against the public API, for a test wallet that used the dollar mode:
+`/v1/rewards/<pubkey>/payouts` at the wallet's identity key (`identityPubkey`, derived at
+`m/8797555'/1'/0'`) lists 62 paid daily payouts from 25/08 to 10/11/2026, at 350 bps on 60 of them and
+at 400 bps (bracket 1) on the one day the wallet's own swaps reached 560,414 sats. Each row carries that
+day's `volume.swapSats`, `rewardsBracket`, `annualRewardsBps` and balance, and the list is paged
+(`pagination.total`, `limit`, `offset`).
 
 `src/wallet/rewards.ts` only **reads** (`rewards.flashnet.xyz/v1`). The pubkey is validated before it
 becomes a URL. The app implements neither the endorsement or delegation call
@@ -411,7 +419,6 @@ on that chain, both read from `conversionInfo` (`Orchestra`).
 - whether `getCrossChainRoutes` answers without `crossChainConfig` having been used before, how long
   a cross-chain quote (`expiresAt`) really lasts, and whether its `amount` is in fact sats at the
   source;
-- whether the wallet's `identityPubkey` is the pubkey Flashnet indexes for rewards;
 - a real cross-chain receive, with its arrival time, the real fee against the quote, and whether the
   overlay and the history source line show as tested. Two open questions ride on it, because the
   provider's docs say a payer on Tron or BNB Chain needs a refund address, which the SDK does not
