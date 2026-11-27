@@ -17,6 +17,8 @@ const refuseMissingDir = (path: string): void => {
 
 export default {
   DocumentDirectoryPath: DOCUMENTS,
+  // Made with mkdir like any other directory, so a write into the cache before it fails here too.
+  CachesDirectoryPath: '/mock/Caches',
   exists: async (path: string): Promise<boolean> => path in files || dirs.has(path),
   readFile: async (path: string): Promise<string> => {
     if (!(path in files)) {

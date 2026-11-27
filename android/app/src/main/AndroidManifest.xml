@@ -59,5 +59,16 @@
             <data android:scheme="lightning" />
         </intent-filter>
       </activity>
+      <!-- Serves the address card to the app picked in the share chooser. Not exported: a reader gets
+           the file only through the read grant on the share intent. -->
+      <provider
+        android:name=".share.ShareFileProvider"
+        android:authorities="${applicationId}.share"
+        android:exported="false"
+        android:grantUriPermissions="true">
+        <meta-data
+          android:name="android.support.FILE_PROVIDER_PATHS"
+          android:resource="@xml/share_paths" />
+      </provider>
     </application>
 </manifest>

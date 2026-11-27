@@ -20,6 +20,7 @@ module.exports = [
   'NativeModules',
   'PanResponder',
   'PermissionsAndroid',
+  'PixelRatio',
   'Platform',
   'Pressable',
   'RefreshControl',

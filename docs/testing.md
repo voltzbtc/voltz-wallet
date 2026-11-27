@@ -134,7 +134,8 @@ as `bootRepair.test.tsx` and `walletRestore.test.ts` do.
 a suite about capture or the gallery asks for them with `jest.mock`, and every other suite runs with
 no module, as Android runs for capture and an older binary for the gallery. A read of the capture
 double stays in flight until the test answers it, and the QR double reads a file, so code that
-deletes the picked image first fails as on a phone.
+deletes the picked image first fails as on a phone. `NativeVoltzShare.ts`, the Android image share,
+is asked for the same way, and its double also reads the file it is handed and keeps what it found.
 
 Every `.svg` import resolves to `__mocks__/svgMock.js` through `moduleNameMapper`, since Jest does not
 run the SVG transformer that Metro uses. `react-native-restart` is mocked in `jest.setup.js`.
